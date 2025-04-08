@@ -1,0 +1,69 @@
+@import 'tailwindcss';
+
+@theme {
+  /* --- Your theme variables --- */
+  --color-surface-0: #1c1e26;
+  --color-surface-1: #1a1a1d;
+  --color-surface-2: #25262a;
+  --color-surface-3: #31333d;
+  --color-surface-inverse: #eff0f6;
+
+  --color-text-primary: #eff0f6;
+  --color-text-secondary: #acaeb4;
+  --color-text-muted: #86888f;
+  --color-text-disabled: #61636b;
+  --color-text-inverse: #262833;
+
+  /* --- Primary/Accent Color (Example: Vibrant Blue) --- */
+  --color-primary-base: #2d45ba;
+  --color-primary-hover: #4a5aa7;
+  --color-primary-text: #13141a;
+  --color-primary-muted: #4a5aa7;
+  --color-primary-subtle-bg: #343c66;
+
+  /* An alternative accent color. */
+  --color-secondary-base: #5eead4;
+  --color-secondary-hover: #80f0e0;
+  --color-secondary-text: #1f3a35;
+  --color-secondary-muted: #558c81;
+  --color-secondary-subtle-bg: #354d48;
+
+  /* --- Border Colors --- */
+  --color-border-base: #414451;
+  --color-border-interactive: var(--color-primary-base);
+  --color-border-muted: #343640;
+  --color-border-strong: #5d606d;
+
+  /* --- Status Colors --- */
+  /* Destructive / Error (Red Tone) */
+  --color-destructive-base: #f56565;
+  --color-destructive-hover: #f98080;
+  --color-destructive-text: #fee7e7;
+  --color-destructive-subtle-bg: #5c3232;
+
+  /* Success (Green Tone) */
+  --color-success-base: #48bb78;
+  --color-success-hover: #68c791;
+  --color-success-text: #223d2e;
+  --color-success-subtle-bg: #31543f;
+
+  /* Warning (Yellow/Orange Tone) */
+  --color-warning-base: #ecc94b;
+  --color-warning-hover: #f0d56d;
+  --color-warning-text: #574a1e;
+  --color-warning-subtle-bg: #4a412a;
+
+  --color-form-input: var(--color-surface-1);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-surface-0);
+  }
+}

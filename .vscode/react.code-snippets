@@ -1,0 +1,60 @@
+{
+  "React Functional Component (TypeScript)": {
+    "prefix": "rfc",
+    "body": [
+      "import React from 'react';",
+      "",
+      "// Define prop types using type and ComponentNameProps convention",
+      "type ${1:${TM_FILENAME_BASE}}Props = {", // Type name uses component name + Props
+      "\t$2 // e.g., title: string;",
+      "};",
+      "",
+      "// Use ComponentNameProps type for the component's props",
+      "const ${1:${TM_FILENAME_BASE}} = (props: ${1}Props) => {", // Reference the dynamic type name
+      "\treturn (",
+      "\t\t<div>",
+      "\t\t\t$0", // Final cursor position
+      "\t\t</div>",
+      "\t);",
+      "};",
+      "",
+      "export default ${1:${TM_FILENAME_BASE}};"
+    ],
+    "description": "Creates a React Functional Component using TypeScript (plain function style, type alias)",
+    "scope": "typescriptreact" // Ensures this snippet only shows up in TSX files
+  }, // Add comma here because another snippet follows
+
+  "React Functional Component with Children (TypeScript)": {
+    "prefix": "rfcc", // React Functional Component with Children
+    "body": [
+      "import React, { PropsWithChildren } from 'react';", // Import PropsWithChildren
+      "",
+      "// Define component-specific props (excluding children) using type",
+      "type ${1:${TM_FILENAME_BASE}}OwnProps = {", // Type name uses component name + OwnProps
+      "\t$2 // e.g., title: string;",
+      "};",
+      "",
+      "// Combine OwnProps with PropsWithChildren into ComponentNameProps",
+      "type ${1:${TM_FILENAME_BASE}}Props = PropsWithChildren<${1}OwnProps>;", // Reference the dynamic OwnProps type name
+      "",
+      "// Destructure children and use ComponentNameProps type",
+      "const ${1:${TM_FILENAME_BASE}} = ({ children, ...restProps }: ${1}Props) => {", // Reference the dynamic Props type name
+      "\t// You can access other props via restProps. e.g., restProps.title",
+      "\treturn (",
+      "\t\t<div>",
+      "\t\t\t{/* Render other props or elements here */}",
+      "",
+      "\t\t\t{/* Render children */}",
+      "\t\t\t{children}",
+      "",
+      "\t\t\t$0", // Final cursor position
+      "\t\t</div>",
+      "\t);",
+      "};",
+      "",
+      "export default ${1:${TM_FILENAME_BASE}};"
+    ],
+    "description": "Creates a React Functional Component using TypeScript that explicitly accepts children (type alias)",
+    "scope": "typescriptreact"
+  }
+}
