@@ -1,45 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { initializeMonaco } from './monaco-editor'
 
-// import { loader } from '@monaco-editor/react'
-// import { AssetServer } from './asset-server'
-// import { AssetUrl } from './asset-url'
-
-// protocol.registerSchemesAsPrivileged([
-//   {
-//     scheme: 'app-asset',
-//     privileges: {
-//       standard: true,
-//       supportFetchAPI: true,
-//       bypassCSP: true
-//     }
-//   }
-// ])
-
-// const server = new AssetServer()
-
-// app.whenReady().then(() => {
-//   protocol.handle('app-asset', (request) => {
-//     const asset = new AssetUrl(request.url)
-
-//     if (asset.isNodeModule) {
-//       return server.fromNodeModules(asset.relativeUrl)
-//     } else {
-//       return server.fromPublic(asset.relativeUrl)
-//     }
-//   })
-// })
+initializeMonaco()
 
 function createWindow(): void {
-  // This is how you change the source of the monaco files.
-  // loader.config({
-  //   paths: {
-  //     vs: 'app-asset://zui/node_modules/monaco-editor/min/vs'
-  //   }
-  // })
-
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
