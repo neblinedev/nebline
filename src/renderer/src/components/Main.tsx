@@ -3,7 +3,7 @@ export type MainProps = {
 }
 
 function Main(props: MainProps): JSX.Element {
-  return <div className="flex-1 p-6 bg-surface-1">{props.children}</div>
+  return <div className="flex flex-col flex-1 bg-surface-1">{props.children}</div>
 }
 
 export default Main

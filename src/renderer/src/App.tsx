@@ -7,6 +7,7 @@ function App(): JSX.Element {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <Main>
+        Hello
         <MonacoEditor />
       </Main>
     </div>

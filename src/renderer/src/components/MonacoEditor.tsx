@@ -5,7 +5,7 @@ function MonacoEditor(): JSX.Element {
   return (
     <ReactMonacoEditor
       width="100%"
-      height="600"
+      height="100%"
       language="javascript"
       theme="vs-dark"
       value="// some comment"
