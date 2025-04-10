@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, dialog } from 'electron' // Added Menu, dialog
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -9,11 +9,12 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    // autoHideMenuBar: true, // Remove this to show the menu
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true // Recommended for security
     }
   })
 
@@ -26,6 +27,40 @@ function createWindow(): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+
+  // --- Menu Definition ---
+  const menuTemplate: (Electron.MenuItemConstructorOptions | Electron.MenuItem)[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Open Folder...',
+          accelerator: 'CmdOrCtrl+O',
+          click: async (): Promise<void> => {
+            const result = await dialog.showOpenDialog(mainWindow, {
+              properties: ['openDirectory']
+            })
+            if (!result.canceled && result.filePaths.length > 0) {
+              const folderPath = result.filePaths[0]
+              console.log('Selected folder:', folderPath) // Log selection
+              mainWindow.webContents.send('folder-selected', folderPath)
+            }
+          }
+        },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    // Add other menus like Edit, View, Window, Help as needed
+    {
+      label: 'Developer',
+      submenu: [{ role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' }]
+    }
+  ]
+
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+  // --- End Menu Definition ---
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
