@@ -1,6 +1,5 @@
 ![image](https://github.com/user-attachments/assets/386350fb-068d-4d24-a2d7-44fc00a96132)
 
-
 ## Nebline
 
 An experimental journaling app with AI-assisted psychological insights.
@@ -27,7 +26,7 @@ When you point Nebline to a local folder, it automatically creates the following
 
 ```
 your-journal-folder/
-├── nebline.json       # Configuration file containing your AI API keys
+├── nebline.json       # Configuration file containing your AI API keys (set anthropicApiKey here)
 └── journal/
     └── YYYY/          # Year folders (e.g., 2025)
         └── WW/        # Calendar week folders (e.g., 01, 02, etc.)
@@ -65,7 +64,9 @@ Each week's journal is stored in a separate folder, organized by year and calend
    npm install
    ```
 
-## Development
+## Running Nebline
+
+For now, there are no binaries. You need to build and run it from source.
 
 To run Nebline in development mode:
 
@@ -74,6 +75,10 @@ npm run dev
 ```
 
 This will start the application with hot-reload enabled.
+
+## Configuration
+
+Currently, Nebline only supports Anthropic Claude Sonnet 3.7 for AI insights. To use this feature, you must set your `anthropicApiKey` in the `nebline.json` file.
 
 ## Building
 
