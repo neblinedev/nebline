@@ -46,6 +46,14 @@ function App(): JSX.Element {
     }
   }, [openProject]) // Depend on openProject
 
+  // Effect to update the preload current project whenever it changes
+  useEffect(() => {
+    // Make the project available to the main process
+    if (window.api.setCurrentProject) {
+      window.api.setCurrentProject(project)
+    }
+  }, [project]) // Only re-run when project changes
+
   // Effect to handle folder selection from main process
   useEffect(() => {
     window.api.onFolderSelected((folderPath) => {

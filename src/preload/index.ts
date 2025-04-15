@@ -1,6 +1,9 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron' // Added ipcRenderer
 
+// Create a variable to store the current project
+let currentProject: { projectPath: string; journalPath: string } | null = null
+
 // Custom APIs for renderer
 const ipcApi = {
   onFolderSelected: (callback: (folderPath: string) => void): void => {
@@ -32,7 +35,17 @@ const ipcApi = {
   showItemInFolder: (path: string): Promise<boolean> =>
     ipcRenderer.invoke('shell:showItemInFolder', path),
   // Function to open terminal at path
-  openTerminal: (path: string): Promise<boolean> => ipcRenderer.invoke('shell:openTerminal', path)
+  openTerminal: (path: string): Promise<boolean> => ipcRenderer.invoke('shell:openTerminal', path),
+
+  // NEW: Store current project data for access from the main process
+  setCurrentProject: (project: { projectPath: string; journalPath: string } | null): void => {
+    currentProject = project
+  },
+
+  // NEW: Method for main process to retrieve the current project
+  _getCurrentProject: (): { projectPath: string; journalPath: string } | null => {
+    return currentProject
+  }
 }
 
 export type IpcApi = typeof ipcApi

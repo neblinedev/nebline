@@ -54,6 +54,70 @@ function createWindow(): void {
       ]
     },
     {
+      label: 'Journal',
+      submenu: [
+        {
+          label: 'Reveal in Finder / Explorer',
+          click: async (): Promise<void> => {
+            // Get the current project from renderer
+            const currentProject = await mainWindow.webContents.executeJavaScript(
+              `window.api._getCurrentProject && window.api._getCurrentProject()`
+            )
+
+            if (currentProject?.journalPath) {
+              shell.showItemInFolder(currentProject.journalPath)
+            } else {
+              dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                message: 'No journal folder is currently open.',
+                buttons: ['OK']
+              })
+            }
+          }
+        },
+        {
+          label: 'Open in Terminal',
+          click: async (): Promise<void> => {
+            // Get the current project from renderer
+            const currentProject = await mainWindow.webContents.executeJavaScript(
+              `window.api._getCurrentProject && window.api._getCurrentProject()`
+            )
+
+            if (currentProject?.journalPath) {
+              // Use existing handler for opening terminal
+              if (process.platform === 'darwin') {
+                // Using Terminal.app on macOS
+                const terminalCommand = `open -a Terminal "${currentProject.journalPath}"`
+                exec(terminalCommand, (error) => {
+                  if (error) {
+                    console.error('Failed to open Terminal:', error)
+                  }
+                })
+              } else if (process.platform === 'win32') {
+                // For Windows
+                spawn('cmd.exe', ['/K', `cd /d "${currentProject.journalPath}"`], {
+                  detached: true,
+                  stdio: 'ignore'
+                })
+              } else {
+                // For Linux
+                spawn('xterm', ['-e', `cd "${currentProject.journalPath}" && bash`], {
+                  detached: true,
+                  stdio: 'ignore'
+                })
+              }
+            } else {
+              dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                message: 'No journal folder is currently open.',
+                buttons: ['OK']
+              })
+            }
+          }
+        }
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         { role: 'undo' },
