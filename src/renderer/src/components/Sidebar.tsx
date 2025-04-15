@@ -36,7 +36,7 @@ function Sidebar(): JSX.Element {
   const currentWeekString = currentWeekData?.weekFolderName ?? null
 
   return (
-    <div className="w-64 h-screen px-4 overflow-y-auto">
+    <div className="w-64 h-screen px-4 overflow-y-auto space-y-2">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Nebline</h2>
         <button
