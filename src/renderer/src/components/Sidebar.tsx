@@ -56,7 +56,7 @@ function Sidebar(): JSX.Element {
       <nav>
         {/* Use optional chaining and check length */}
         {availableWeeks && availableWeeks.length > 0 ? (
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {availableWeeks.map((week) => {
               const isActive = week === currentWeekString // Compare with currentWeekString
 
