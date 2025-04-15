@@ -121,16 +121,26 @@ function Sidebar(): JSX.Element {
         )}
       </nav>
 
-      <div className="flex justify-center">
+      <div className="mt-4 flex flex-col space-y-1 justify-center">
         <button
           onClick={() => {
             if (project?.journalPath) {
               window.electron.ipcRenderer.invoke('shell:showItemInFolder', project.journalPath)
             }
           }}
-          className="text-xs text-primary-pop hover:underline"
+          className="text-xs text-primary-pop hover:underline text-center w-full"
         >
-          Open Journal Folder
+          Reveal in Explorer
+        </button>
+        <button
+          onClick={() => {
+            if (project?.journalPath) {
+              window.api.openTerminal(project.journalPath)
+            }
+          }}
+          className="text-xs text-primary-pop hover:underline text-center w-full"
+        >
+          Open in Terminal
         </button>
       </div>
     </div>

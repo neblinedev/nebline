@@ -2,6 +2,7 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron' // Added Menu, dialog
 import fs from 'fs/promises' // Use promises API for async operations
 import { dirname, join } from 'path' // Added dirname
+import { exec, spawn } from 'child_process' // Import child_process methods
 import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
@@ -279,7 +280,7 @@ app.whenReady().then(() => {
       return false
     }
   })
-  
+
   // --- Open Terminal at Path Handler ---
   ipcMain.handle('shell:openTerminal', async (_event, folderPath: string) => {
     try {
@@ -287,7 +288,6 @@ app.whenReady().then(() => {
       if (process.platform === 'darwin') {
         // Using Terminal.app on macOS
         const terminalCommand = `open -a Terminal "${folderPath}"`
-        const { exec } = require('child_process')
         exec(terminalCommand, (error: any) => {
           if (error) {
             console.error('Failed to open Terminal:', error)
@@ -297,12 +297,10 @@ app.whenReady().then(() => {
         return true
       } else if (process.platform === 'win32') {
         // For Windows, we would use 'cmd.exe /K cd /d <path>'
-        const { spawn } = require('child_process')
         spawn('cmd.exe', ['/K', `cd /d "${folderPath}"`], { detached: true, stdio: 'ignore' })
         return true
       } else {
         // For Linux, we might use xterm or gnome-terminal
-        const { spawn } = require('child_process')
         spawn('xterm', ['-e', `cd "${folderPath}" && bash`], { detached: true, stdio: 'ignore' })
         return true
       }

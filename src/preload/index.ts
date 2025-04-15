@@ -27,7 +27,12 @@ const ipcApi = {
   readDir: (path: string): Promise<{ name: string; isDirectory: boolean }[] | null> =>
     ipcRenderer.invoke('fs:readDir', path),
   // Function to trigger folder selection dialog
-  selectFolder: (): Promise<string | undefined> => ipcRenderer.invoke('dialog:openDirectory')
+  selectFolder: (): Promise<string | undefined> => ipcRenderer.invoke('dialog:openDirectory'),
+  // Function to open path in OS file explorer
+  showItemInFolder: (path: string): Promise<boolean> =>
+    ipcRenderer.invoke('shell:showItemInFolder', path),
+  // Function to open terminal at path
+  openTerminal: (path: string): Promise<boolean> => ipcRenderer.invoke('shell:openTerminal', path)
 }
 
 export type IpcApi = typeof ipcApi
