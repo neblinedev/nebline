@@ -4,7 +4,7 @@ import dayjs from 'dayjs' // Import dayjs for date parsing
 import 'font-awesome/css/font-awesome.min.css' // Make sure Font Awesome is imported
 
 function Sidebar(): JSX.Element {
-  const { availableWeeks, loadWeek, currentWeekData, isWeekLoading, view, toggleView } =
+  const { availableWeeks, loadWeek, currentWeekData, isWeekLoading, view, toggleView, project } =
     useProject() // Updated context values
 
   const handleWeekClick = (weekString: string): void => {
@@ -120,6 +120,19 @@ function Sidebar(): JSX.Element {
           <p className="text-sm text-gray-500">No journal weeks found.</p>
         )}
       </nav>
+
+      <div className="flex justify-center">
+        <button
+          onClick={() => {
+            if (project?.journalPath) {
+              window.electron.ipcRenderer.invoke('shell:showItemInFolder', project.journalPath)
+            }
+          }}
+          className="text-xs text-primary-pop hover:underline"
+        >
+          Open Journal Folder
+        </button>
+      </div>
     </div>
   )
 }

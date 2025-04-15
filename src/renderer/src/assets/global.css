@@ -16,10 +16,12 @@
 
   /* --- Primary/Accent Color (Example: Vibrant Blue) --- */
   --color-primary-base: #2d45ba;
+  --color-primary-pop: #637dff;
   --color-primary-hover: #4a5aa7;
   --color-primary-text: #13141a;
   --color-primary-muted: #4a5aa7;
   --color-primary-subtle-bg: #343c66;
+  --color-link: var(--color-primary-pop);
 
   /* An alternative accent color. */
   --color-secondary-base: #5eead4;

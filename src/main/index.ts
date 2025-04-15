@@ -260,19 +260,58 @@ app.whenReady().then(() => {
     const result = await dialog.showOpenDialog(window, {
       properties: ['openDirectory']
     })
-
     if (!result.canceled && result.filePaths.length > 0) {
       const folderPath = result.filePaths[0]
       console.log('Selected folder via button:', folderPath) // Log selection
       // Send to renderer for global state update (e.g., ProjectContext)
-      event.sender.send('folder-selected', folderPath)
-      // Return to the specific caller (WelcomeScreen's invoke)
-      return folderPath
+      window.webContents.send('folder-selected', folderPath)
     }
-
-    return undefined // Return undefined if cancelled
+    return result
   })
-  // --- End Dialog Handler ---
+
+  // --- Open Folder in OS Explorer Handler ---
+  ipcMain.handle('shell:showItemInFolder', async (_event, folderPath: string) => {
+    try {
+      await shell.showItemInFolder(folderPath)
+      return true
+    } catch (error) {
+      console.error('Failed to open folder in OS explorer:', error)
+      return false
+    }
+  })
+  
+  // --- Open Terminal at Path Handler ---
+  ipcMain.handle('shell:openTerminal', async (_event, folderPath: string) => {
+    try {
+      // For macOS, we can use the 'open' command with Terminal app
+      if (process.platform === 'darwin') {
+        // Using Terminal.app on macOS
+        const terminalCommand = `open -a Terminal "${folderPath}"`
+        const { exec } = require('child_process')
+        exec(terminalCommand, (error: any) => {
+          if (error) {
+            console.error('Failed to open Terminal:', error)
+            return false
+          }
+        })
+        return true
+      } else if (process.platform === 'win32') {
+        // For Windows, we would use 'cmd.exe /K cd /d <path>'
+        const { spawn } = require('child_process')
+        spawn('cmd.exe', ['/K', `cd /d "${folderPath}"`], { detached: true, stdio: 'ignore' })
+        return true
+      } else {
+        // For Linux, we might use xterm or gnome-terminal
+        const { spawn } = require('child_process')
+        spawn('xterm', ['-e', `cd "${folderPath}" && bash`], { detached: true, stdio: 'ignore' })
+        return true
+      }
+    } catch (error) {
+      console.error('Failed to open terminal at path:', error)
+      return false
+    }
+  })
+  // --- End IPC Handlers ---
 
   createWindow()
 
@@ -281,7 +320,7 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-})
+}) // End app.whenReady().then()
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
