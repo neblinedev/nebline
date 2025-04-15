@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: nebline
+appId: com.nebline.app
+productName: Nebline
 directories:
   buildResources: build
 files:

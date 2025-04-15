@@ -4,7 +4,7 @@ import dayjs from 'dayjs' // Import dayjs for date parsing
 import 'font-awesome/css/font-awesome.min.css' // Make sure Font Awesome is imported
 
 function Sidebar(): JSX.Element {
-  const { availableWeeks, loadWeek, currentWeekData, isWeekLoading, view, toggleView, project } =
+  const { availableWeeks, loadWeek, currentWeekData, isWeekLoading, view, toggleView } =
     useProject() // Updated context values
 
   const handleWeekClick = (weekString: string): void => {

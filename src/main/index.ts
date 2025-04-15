@@ -5,6 +5,8 @@ import { dirname, join } from 'path' // Added dirname
 import { exec, spawn } from 'child_process' // Import child_process methods
 import icon from '../../resources/icon.png?asset'
 
+app.name = 'Nebline'
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -166,9 +168,6 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.nebline.app')
-
-  // Set application name
-  app.name = 'Nebline'
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -352,11 +351,13 @@ app.whenReady().then(() => {
       if (process.platform === 'darwin') {
         // Using Terminal.app on macOS
         const terminalCommand = `open -a Terminal "${folderPath}"`
-        exec(terminalCommand, (error: any) => {
+        exec(terminalCommand, (error) => {
           if (error) {
             console.error('Failed to open Terminal:', error)
             return false
           }
+          console.log('Terminal opened successfully at path:', folderPath)
+          return true
         })
         return true
       } else if (process.platform === 'win32') {

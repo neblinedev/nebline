@@ -1,10 +1,11 @@
 {
   "name": "nebline",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "A journaling app with AI-assisted psychological insights",
   "main": "./out/main/index.js",
   "author": "Andre Pena",
-  "homepage": "https://electron-vite.org",
+  "displayName": "Nebline",
+  "homepage": "https://github.com/andrepena/nebline",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
