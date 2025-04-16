@@ -10,7 +10,7 @@ dayjs.extend(utc)
 dayjs.extend(weekday)
 
 // Define the structure of our project object
-export interface NeblineProject {
+export type NeblineProject = {
   projectPath: string
   journalPath: string
   currentWeekPath: string // Renamed from currentDayPath

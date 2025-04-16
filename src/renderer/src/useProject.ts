@@ -7,7 +7,7 @@ import {
   openProject,
   saveConfigFile as saveConfigFileLogic,
   saveFileContent as saveFileContentLogic
-} from '../lib/project'
+} from './lib/project'
 
 export interface ProjectContextData {
   project: NeblineProject | null
@@ -76,7 +76,7 @@ export const useProject = (): ProjectContextData => {
     }
   }, [])
 
-  const handleOpenProject = useCallback(
+  const loadProject = useCallback(
     async (folderPath: string) => {
       setIsProjectLoading(true)
       setError(null)
@@ -132,7 +132,7 @@ export const useProject = (): ProjectContextData => {
     [fetchAvailableWeeks]
   )
 
-  const handleLoadWeek = useCallback(
+  const loadWeek = useCallback(
     async (date: Date) => {
       if (!project) {
         setError('No project is currently open.')
@@ -173,7 +173,7 @@ export const useProject = (): ProjectContextData => {
     [project]
   )
 
-  const handleSaveCurrentWeekFile = useCallback(
+  const saveCurrentWeekFile = useCallback(
     async (filePath: string, content: string) => {
       if (!filePath) {
         console.error('Hook: Cannot save, no file path provided.')
@@ -215,8 +215,7 @@ export const useProject = (): ProjectContextData => {
     [currentWeekData]
   )
 
-  // Handler for saving configuration
-  const handleSaveConfiguration = useCallback(
+  const saveConfiguration = useCallback(
     async (content: string) => {
       if (!project?.projectPath) {
         console.error('Hook: Cannot save configuration, no project path.')
@@ -246,8 +245,7 @@ export const useProject = (): ProjectContextData => {
     [project]
   )
 
-  // Toggle between journal and configuration views
-  const handleToggleView = useCallback(() => {
+  const toggleView = useCallback(() => {
     setView((currentView) => (currentView === 'journal' ? 'configuration' : 'journal'))
     console.log(`Hook: Toggled view to ${view === 'journal' ? 'configuration' : 'journal'}`)
   }, [view])
@@ -261,10 +259,10 @@ export const useProject = (): ProjectContextData => {
     isWeekLoading,
     error,
     view,
-    loadProject: handleOpenProject,
-    loadWeek: handleLoadWeek,
-    saveCurrentWeekFile: handleSaveCurrentWeekFile,
-    saveConfiguration: handleSaveConfiguration,
-    toggleView: handleToggleView
+    loadProject,
+    loadWeek,
+    saveCurrentWeekFile,
+    saveConfiguration,
+    toggleView
   }
 }

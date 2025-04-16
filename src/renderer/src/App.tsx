@@ -5,7 +5,7 @@ import TopBar from './components/TopBar' // Import the new TopBar component
 import MonacoEditor from '@renderer/components/MonacoEditor'
 import { getFromLocalStorage, saveToLocalStorage } from './utils/localStorage'
 import { LOCAL_STORAGE_KEYS } from './utils/constants'
-import { useProject } from './hooks/useProject' // Import the hook
+import { useProject } from './useProject' // Import the hook
 import { debounce } from 'lodash-es' // Import debounce
 import { generateInsights } from './lib/ai/generateInsights' // Import the new function
 import WelcomeScreen from './components/WelcomeScreen' // Import the WelcomeScreen component
