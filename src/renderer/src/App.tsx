@@ -15,12 +15,16 @@ export const App: React.FC = () => {
     project,
     currentWeekData,
     configData,
+    availableWeeks, // Add availableWeeks
     isProjectLoading,
+    isWeekLoading, // Add isWeekLoading
     error,
     view,
     loadProject: openProject,
+    loadWeek, // Add loadWeek
     saveCurrentWeekFile,
-    saveConfiguration
+    saveConfiguration,
+    toggleView // Add toggleView
   } = useProject()
 
   // State to manage which tab (journal or insights) is active
@@ -225,7 +229,14 @@ export const App: React.FC = () => {
     <div className="flex h-screen">
       {/* Sidebar is always rendered when project is loaded */}
       <div className="w-64 flex-shrink-0">
-        <Sidebar />
+        <Sidebar
+          availableWeeks={availableWeeks}
+          loadWeek={loadWeek}
+          currentWeekData={currentWeekData}
+          isWeekLoading={isWeekLoading}
+          view={view}
+          toggleView={toggleView}
+        />
       </div>
 
       {/* Main content area */}

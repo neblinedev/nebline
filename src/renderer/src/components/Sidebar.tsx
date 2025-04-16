@@ -1,26 +1,36 @@
-import { useProject } from '@renderer/hooks/useProject' // Import the hook
-import classNames from 'classnames' // Import classnames for managing CSS classes
-import dayjs from 'dayjs' // Import dayjs for date parsing
-import 'font-awesome/css/font-awesome.min.css' // Make sure Font Awesome is imported
+import { JournalWeek } from '@renderer/lib/project'
+import classNames from 'classnames'
+import dayjs from 'dayjs'
+import 'font-awesome/css/font-awesome.min.css'
 
-function Sidebar(): JSX.Element {
-  const { availableWeeks, loadWeek, currentWeekData, isWeekLoading, view, toggleView } =
-    useProject() // Updated context values
+interface SidebarProps {
+  availableWeeks: string[]
+  loadWeek: (date: Date) => Promise<void>
+  currentWeekData: JournalWeek | null
+  isWeekLoading: boolean
+  view: 'journal' | 'configuration'
+  toggleView: () => void
+}
 
+function Sidebar({
+  availableWeeks,
+  loadWeek,
+  currentWeekData,
+  isWeekLoading,
+  view,
+  toggleView
+}: SidebarProps): JSX.Element {
   const handleWeekClick = (weekString: string): void => {
     // Don't allow loading another week if we're already loading one
     if (isWeekLoading) return
 
-    // Extract year and week number from YYYY-CW-WW string
     const parts = weekString.match(/^(\d{4})-CW-(\d{2})$/)
     if (parts) {
       const year = parseInt(parts[1], 10)
       const week = parseInt(parts[2], 10)
-      // Get a date within that ISO week (e.g., the Monday)
       const dateToLoad = dayjs().year(year).isoWeek(week).isoWeekday(1).toDate()
 
       console.log(`Sidebar: Loading week ${weekString} (using date ${dateToLoad.toISOString()})`)
-      // If we're in configuration view, switch to journal view
       if (view === 'configuration') {
         toggleView()
       }
@@ -30,13 +40,10 @@ function Sidebar(): JSX.Element {
     }
   }
 
-  // Extract the date part (YYYY-MM-DD) from the currentDayData path for comparison
-  // Extract the week part (YYYY-CW-WW) from the currentWeekData path for comparison
-  // Use the weekFolderName directly for comparison
   const currentWeekString = currentWeekData?.weekFolderName ?? null
 
   return (
-    <div className="w-64 h-screen px-4 overflow-y-auto space-y-2">
+    <div className="w-64 h-screen px-3 overflow-y-auto space-y-2">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Nebline</h2>
         <button
