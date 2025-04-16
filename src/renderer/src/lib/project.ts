@@ -117,7 +117,7 @@ export async function openProject(folderPath: string): Promise<NeblineProject | 
     const project: NeblineProject = {
       projectPath: folderPath,
       journalPath: journalPath,
-      currentWeekPath: weekData.weekPath, // Renamed from currentDayPath
+      currentWeekPath: weekData.weekPath,
       currentJournalFile: weekData.journalFile
     }
 

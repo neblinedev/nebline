@@ -1,18 +1,16 @@
-import React, { ReactNode, useCallback, useState } from 'react' // Removed useContext and createContext
+import React, { PropsWithChildren, useCallback, useState } from 'react'
 import {
-  JournalWeek, // Renamed import
+  JournalWeek,
   loadConfigFile as loadConfigFileLogic,
   loadWeek as loadWeekLogic,
-  NeblineProject, // Renamed from JournalDay
-  openProject as openProjectLogic,
-  saveConfigFile as saveConfigFileLogic, // Renamed from loadDayLogic
+  NeblineProject,
+  openProject,
+  saveConfigFile as saveConfigFileLogic,
   saveFileContent as saveFileContentLogic
 } from '../lib/project'
-import { ProjectContext } from './ProjectContextDefinition' // Import from new file, removed ProjectContextType
+import { ProjectContext } from './ProjectContextDefinition'
 
-// Removed interface and context creation from here
-
-export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ProjectProvider: React.FC<PropsWithChildren> = (props) => {
   const [project, setProject] = useState<NeblineProject | null>(null)
   const [currentWeekData, setCurrentWeekData] = useState<JournalWeek | null>(null)
   const [configData, setConfigData] = useState<string | null>(null)
@@ -70,7 +68,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       console.log(`Context: Opening project ${folderPath}`)
       try {
         // We expect the IPC functions to be available via window.electron.ipcRenderer
-        const openedProject = await openProjectLogic(folderPath)
+        const openedProject = await openProject(folderPath)
         if (openedProject) {
           setProject(openedProject)
 
@@ -122,7 +120,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     },
     [fetchAvailableWeeks] // Renamed from fetchAvailableDays
-  ) // Add fetchAvailableWeeks dependency
+  )
 
   const handleLoadWeek = useCallback(
     async (date: Date) => {
@@ -163,11 +161,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     },
     [project]
-  ) // Depends on project being set
+  )
 
-  // Removed handleSaveCurrentJournal
-
-  // Handler for saving content to a specific file within the current week
   const handleSaveCurrentWeekFile = useCallback(
     async (filePath: string, content: string) => {
       if (!filePath) {
@@ -267,7 +262,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         toggleView: handleToggleView
       }}
     >
-      {children}
+      {props.children}
     </ProjectContext.Provider>
   )
 }

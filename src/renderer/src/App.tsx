@@ -10,19 +10,18 @@ import { debounce } from 'lodash-es' // Import debounce
 import { generateInsights } from './lib/ai/generateInsights' // Import the new function
 import WelcomeScreen from './components/WelcomeScreen' // Import the WelcomeScreen component
 
-function App(): JSX.Element {
+export const App: React.FC = () => {
   const {
     project,
-    currentWeekData, // Correctly destructure currentWeekData
+    currentWeekData,
     configData,
-    isProjectLoading, // Keep isProjectLoading
+    isProjectLoading,
     error,
     view,
     loadProject: openProject,
-    saveCurrentWeekFile, // Correctly destructure saveCurrentWeekFile
+    saveCurrentWeekFile,
     saveConfiguration
-    // toggleView not used here, only in Sidebar
-  } = useProject() // Use the context hook
+  } = useProject()
 
   // State to manage which tab (journal or insights) is active
   const [activeTab, setActiveTab] = useState<'journal' | 'insights'>('journal')
@@ -278,5 +277,3 @@ function App(): JSX.Element {
     </div>
   )
 }
-
-export default App
