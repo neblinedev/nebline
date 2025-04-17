@@ -37,6 +37,17 @@ const ipcApi = {
   // Function to open terminal at path
   openTerminal: (path: string): Promise<boolean> => ipcRenderer.invoke('shell:openTerminal', path),
 
+  // Function to show a native message dialog
+  showMessageBox: (options: {
+    type: 'none' | 'info' | 'error' | 'question' | 'warning'
+    title?: string
+    message: string
+    detail?: string
+    buttons?: string[]
+    defaultId?: number
+  }): Promise<{ response: number; checkboxChecked: boolean }> =>
+    ipcRenderer.invoke('dialog:showMessageBox', options),
+
   // NEW: Store current project data for access from the main process
   setCurrentProject: (project: { projectPath: string; journalPath: string } | null): void => {
     currentProject = project
@@ -45,6 +56,16 @@ const ipcApi = {
   // NEW: Method for main process to retrieve the current project
   _getCurrentProject: (): { projectPath: string; journalPath: string } | null => {
     return currentProject
+  },
+
+  // AI API proxy to avoid CORS issues
+  proxyAiRequest: (options: {
+    url: string
+    method?: string
+    headers?: Record<string, string>
+    body?: any
+  }): Promise<any> => {
+    return ipcRenderer.invoke('ai:proxyRequest', options)
   }
 }
 

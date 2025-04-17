@@ -8,8 +8,8 @@ interface SidebarProps {
   loadWeek: (date: Date) => Promise<void>
   currentWeekData: JournalWeek | null
   isWeekLoading: boolean
-  view: 'journal' | 'configuration' | 'about'
-  setView: (view: 'journal' | 'configuration' | 'about') => void
+  view: 'journal' | 'configuration' | 'overview'
+  setView: (view: 'journal' | 'configuration' | 'overview') => void
 }
 
 function Sidebar({
@@ -31,7 +31,7 @@ function Sidebar({
       const dateToLoad = dayjs().year(year).isoWeek(week).isoWeekday(1).toDate()
 
       console.log(`Sidebar: Loading week ${weekString} (using date ${dateToLoad.toISOString()})`)
-      if (view === 'configuration' || view === 'about') {
+      if (view === 'configuration' || view === 'overview') {
         setView('journal')
       }
       loadWeek(dateToLoad)
@@ -44,11 +44,11 @@ function Sidebar({
     setView(view === 'configuration' ? 'journal' : 'configuration')
   }
 
-  const handleAboutClick = (): void => {
+  const handleOverviewClick = (): void => {
     if (isWeekLoading) return
 
-    console.log('Sidebar: Loading about section')
-    setView('about')
+    console.log('Sidebar: Loading overview section')
+    setView('overview')
   }
 
   const currentWeekString = currentWeekData?.weekFolderName ?? null
@@ -140,19 +140,19 @@ function Sidebar({
         <div className="mt-2 pt-2 border-t border-surface-2" />
         <div>
           <button
-            onClick={handleAboutClick}
+            onClick={handleOverviewClick}
             disabled={isWeekLoading}
             className={classNames(
               'w-full text-left block px-3 py-2 rounded transition-colors duration-150 ease-in-out',
               {
-                'bg-primary-base hover:bg-primary-hover': view === 'about',
+                'bg-primary-base hover:bg-primary-hover': view === 'overview',
                 'bg-surface-1 hover:bg-gray-200 hover:text-gray-800':
-                  view !== 'about' && !isWeekLoading,
+                  view !== 'overview' && !isWeekLoading,
                 'opacity-50 cursor-not-allowed': isWeekLoading
               }
             )}
           >
-            <div className={classNames({ 'font-medium': view === 'about' })}>About me</div>
+            <div className={classNames({ 'font-medium': view === 'overview' })}>Overview</div>
           </button>
         </div>
       </nav>

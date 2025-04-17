@@ -9,6 +9,11 @@ dayjs.extend(isoWeek)
 dayjs.extend(utc)
 dayjs.extend(weekday)
 
+export type DocumentWithInsights = {
+  document: string
+  insights: string
+}
+
 // Define the structure of our project object
 export type NeblineProject = {
   projectPath: string
@@ -83,6 +88,7 @@ export async function openProject(folderPath: string): Promise<NeblineProject | 
     const neblineJsonExists = await window.api.checkPathExists(neblineJsonPath) // Use window.api
     if (!neblineJsonExists) {
       console.log(`Creating ${neblineJsonPath}`)
+      // Create a basic file initially, the full config will be created by loadConfig
       await window.api.ensureFileExists(
         // Use window.api
         neblineJsonPath,
@@ -214,11 +220,11 @@ export async function loadConfig(projectPath: string): Promise<ProjectConfig> {
       // Create default config if it doesn't exist
       console.log('Configuration file does not exist, creating default')
       const defaultConfig: ProjectConfig = {
-        model: '',
-        anthropicApiKey: '',
+        openRouterApiKey: '',
         openAiApiKey: '',
-        googleApiKey: '',
-        openRouterApiKey: ''
+        anthropicApiKey: '',
+        model: 'anthropic:claude-3-7-sonnet-20250219',
+        googleApiKey: ''
       }
       const defaultConfigStr = JSON.stringify(defaultConfig, null, 2)
       await window.api.writeFileContent(configFilePath, defaultConfigStr)
@@ -229,11 +235,11 @@ export async function loadConfig(projectPath: string): Promise<ProjectConfig> {
     console.log('Configuration file loaded successfully')
 
     const defaultConfig: ProjectConfig = {
-      model: '',
-      anthropicApiKey: '',
+      openRouterApiKey: '',
       openAiApiKey: '',
-      googleApiKey: '',
-      openRouterApiKey: ''
+      anthropicApiKey: '',
+      model: 'anthropic:claude-3-7-sonnet-20250219',
+      googleApiKey: ''
     }
 
     return content ? JSON.parse(content) : defaultConfig
@@ -256,5 +262,115 @@ export async function saveConfigFile(projectPath: string, content: string): Prom
   } catch (error) {
     console.error('Error saving configuration file:', error)
     return false
+  }
+}
+
+/**
+ * Fetches journal content for multiple weeks.
+ *
+ * @param projectPath - The path to the project directory
+ * @param currentWeekFolderName - The folder name of the current week (e.g., "2023-CW-01")
+ * @param count - The number of weeks to fetch (including the current week)
+ * @returns An array of DocumentWithInsights objects, sorted from newest to oldest
+ */
+export async function fetchJournalHistory(
+  projectPath: string,
+  currentWeekFolderName: string,
+  count: number
+): Promise<DocumentWithInsights[]> {
+  try {
+    console.log(`Fetching journal history: ${count} weeks`)
+
+    // Parse the current week folder name to get year and week number
+    const match = currentWeekFolderName.match(/^(\d{4})-CW-(\d{2})$/)
+    if (!match) {
+      console.error(`Invalid week folder name format: ${currentWeekFolderName}`)
+      return []
+    }
+
+    const journalBasePath = await window.api.joinPath(projectPath, 'journal')
+
+    // Get all available weeks
+    const weeks: string[] = []
+    const yearDirs = await window.api.readDir(journalBasePath)
+
+    if (yearDirs) {
+      for (const yearDir of yearDirs) {
+        if (yearDir.isDirectory && /^\d{4}$/.test(yearDir.name)) {
+          const yearPath = await window.api.joinPath(journalBasePath, yearDir.name)
+          const weekDirs = await window.api.readDir(yearPath)
+
+          if (weekDirs) {
+            for (const weekDir of weekDirs) {
+              if (weekDir.isDirectory && /^\d{4}-CW-\d{2}$/.test(weekDir.name)) {
+                weeks.push(weekDir.name)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Sort weeks in descending order (newest first)
+    weeks.sort((a, b) => b.localeCompare(a))
+
+    // Always include the current week
+    const filteredWeeks = weeks
+
+    // Take the requested number of weeks
+    const selectedWeeks = filteredWeeks.slice(0, count)
+
+    // Fetch journal and insights content for each selected week
+    const journalWithInsights: DocumentWithInsights[] = []
+
+    for (const weekFolderName of selectedWeeks) {
+      // Extract year from the week folder name
+      const yearMatch = weekFolderName.match(/^(\d{4})-CW-\d{2}$/)
+      if (!yearMatch) continue
+
+      const year = yearMatch[1]
+      const yearPath = await window.api.joinPath(journalBasePath, year)
+      const weekPath = await window.api.joinPath(yearPath, weekFolderName)
+      const journalFile = await window.api.joinPath(weekPath, 'journal.md')
+      const insightsFile = await window.api.joinPath(weekPath, 'insights.md')
+
+      // Check if the journal file exists
+      const journalExists = await window.api.checkPathExists(journalFile)
+      let journalContent = ''
+      if (journalExists) {
+        const content = await window.api.readFileContent(journalFile)
+        if (content) {
+          journalContent = content
+        }
+      }
+
+      // Check if the insights file exists, create it if it doesn't
+      let insightsContent = ''
+      const insightsExists = await window.api.checkPathExists(insightsFile)
+      if (insightsExists) {
+        const content = await window.api.readFileContent(insightsFile)
+        if (content) {
+          insightsContent = content
+        }
+      } else {
+        // Create an empty insights file with default content
+        insightsContent = `# Insights - Week ${weekFolderName}\n\n`
+        await window.api.ensureFileExists(insightsFile, insightsContent)
+      }
+
+      // Only add to the result if we have journal content
+      if (journalContent) {
+        journalWithInsights.push({
+          document: journalContent,
+          insights: insightsContent
+        })
+      }
+    }
+
+    console.log(`Fetched ${journalWithInsights.length} journal entries with insights for history`)
+    return journalWithInsights
+  } catch (error) {
+    console.error('Error fetching journal history:', error)
+    return []
   }
 }

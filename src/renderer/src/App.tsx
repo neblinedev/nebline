@@ -1,35 +1,44 @@
-import { useEffect, useCallback, useState } from 'react' // Import hooks
+import { useEffect, useCallback, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import Main from './components/Main'
-import TopBar from './components/TopBar' // Import the new TopBar component
+import TopBar from './components/TopBar'
 import MonacoEditor from '@renderer/components/MonacoEditor'
 import { getFromLocalStorage, saveToLocalStorage } from './utils/localStorage'
 import { LOCAL_STORAGE_KEYS } from './utils/constants'
 import { useProject } from './lib/project/useProject'
 import { debounce } from 'lodash-es'
-import { generateInsights } from './lib/ai/generateInsights'
+import { generateJournalInsights, generateOverviewInsights } from './lib/ai/generateInsights'
 import WelcomeScreen from './components/WelcomeScreen'
+import { TabType } from '@renderer/components/TopBarTab'
+import OverviewTopBar from '@renderer/components/OverviewTopBar'
+import { updateAiRegistryWithConfig } from './lib/ai/update-ai-registry'
+import { showErrorDialog } from './utils/dialog'
+import { DocumentWithInsights, fetchJournalHistory } from './lib/project/helpers'
 
 export const App: React.FC = () => {
   const {
     project,
     currentWeekData,
     configData,
-    aboutContent,
+    overviewContent,
+    overviewInsightsContent,
     availableWeeks,
     isProjectLoading,
     isWeekLoading,
     error,
     view,
+    activeOverviewTab,
     loadProject,
     loadWeek,
     saveCurrentWeekFile,
     saveConfigData,
-    saveAboutContent,
-    setView
+    saveOverviewContent,
+    saveOverviewInsightsContent,
+    setView,
+    setActiveOverviewTab
   } = useProject()
 
-  const [activeTab, setActiveTab] = useState<'journal' | 'insights'>('journal')
+  const [activeTab, setActiveTab] = useState<TabType>('document')
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
 
   useEffect(() => {
@@ -57,6 +66,14 @@ export const App: React.FC = () => {
     }
   }, [project]) // Only re-run when project changes
 
+  // Effect to update the AI registry when the configuration changes
+  useEffect(() => {
+    if (configData) {
+      console.log('Updating AI registry with project configuration')
+      updateAiRegistryWithConfig(configData)
+    }
+  }, [configData]) // Only re-run when configData changes
+
   // Effect to handle folder selection from main process
   useEffect(() => {
     window.api.onFolderSelected((folderPath) => {
@@ -71,10 +88,10 @@ export const App: React.FC = () => {
     if (currentWeekData) {
       // Use currentWeekData
       // Only reset if the week actually changed
-      setActiveTab('journal')
-      console.log('Current week changed, resetting active tab to journal.')
+      setActiveTab('document')
+      console.log('Current week changed, resetting active tab to document.')
     }
-  }, [currentWeekData?.weekPath]) // Depend specifically on the weekPath
+  }, [currentWeekData, currentWeekData?.weekPath]) // Depend on currentWeekData and weekPath
 
   // --- Debounced Save for Journal ---
   const debouncedSaveJournal = useCallback(
@@ -120,50 +137,76 @@ export const App: React.FC = () => {
   const onEditorChange = (newValue: string | undefined): void => {
     const content = newValue ?? ''
     if (view === 'journal' && currentWeekData) {
-      if (activeTab === 'journal') {
+      if (activeTab === 'document') {
         debouncedSaveJournal(currentWeekData.journalFile, content) // Use currentWeekData
       } else if (activeTab === 'insights') {
         debouncedSaveInsights(currentWeekData.insightsFile, content) // Use currentWeekData
       }
     } else if (view === 'configuration') {
       debouncedSaveConfig(content)
+    } else if (view === 'overview') {
+      if (activeOverviewTab === 'document') {
+        saveOverviewContent(content)
+      } else if (activeOverviewTab === 'insights') {
+        saveOverviewInsightsContent(content)
+      }
     }
   }
 
-  const onGenerateInsights = async (): Promise<void> => {
-    console.log('Generate Insights button clicked')
-    if (!currentWeekData || !configData || !saveCurrentWeekFile) {
-      console.error('Cannot generate insights: Missing current day data, config, or save function.')
-      alert('Could not generate insights. Missing necessary data or configuration.')
+  const onGenerateJournalInsights = async (): Promise<void> => {
+    console.log('Generate Journal Insights button clicked')
+    if (!currentWeekData || !configData || !saveCurrentWeekFile || !project || !overviewContent) {
+      console.error(
+        'Cannot generate insights: Missing current day data, config, project, overview content, or save function.'
+      )
+      await showErrorDialog('Could not generate insights. Missing necessary data or configuration.')
       return
     }
 
     setIsGeneratingInsights(true)
 
-    // configData is now a ProjectConfig object, not a string
-    const apiKey = configData.anthropicApiKey
-    if (!apiKey) {
+    // Check if the Anthropic API key exists in the config
+    if (!configData.anthropicApiKey) {
       console.error('Anthropic API key not found in configuration.')
-      alert('Anthropic API key is missing in nebline.json.')
+      await showErrorDialog('Anthropic API key is missing in nebline.json.', 'Configuration Error')
       setIsGeneratingInsights(false)
       return
     }
 
-    const journalContent = currentWeekData.journalContent // Use currentWeekData
-
     try {
-      console.log('[handleGenerateInsights] Calling generateInsights function...')
-      // Call the extracted function
-      const insightsMarkdown = await generateInsights({ apiKey, journalContent })
-      console.log('[handleGenerateInsights] generateInsights function completed.')
+      console.log('[handleGenerateInsights] Fetching journal history...')
+      // Get the last 5 weeks of journal entries
+      const journalHistory = await fetchJournalHistory(
+        project.projectPath,
+        currentWeekData.weekFolderName,
+        6
+      )
+      console.log(
+        `[handleGenerateInsights] Fetched ${journalHistory.length} journal entries for history`
+      )
+
+      console.log('[handleGenerateInsights] Calling generateJournalInsights function...')
+      // Call the extracted function with journal history
+      // Create DocumentWithInsights object for overview content
+      const overviewWithInsights: DocumentWithInsights = {
+        document: overviewContent || '',
+        insights: overviewInsightsContent || ''
+      }
+
+      const insightsMarkdown = await generateJournalInsights({
+        config: configData,
+        overviewContent: overviewWithInsights,
+        journalHistory: journalHistory
+      })
+      console.log('[handleGenerateInsights] generateJournalInsights function completed.')
 
       console.log(
         '[handleGenerateInsights] Insights received, preparing to save file:',
-        currentWeekData.insightsFile // Use currentWeekData
+        currentWeekData.insightsFile
       )
 
       // Save the generated insights to the insights.md file
-      await saveCurrentWeekFile(currentWeekData.insightsFile, insightsMarkdown) // Use saveCurrentWeekFile and currentWeekData
+      await saveCurrentWeekFile(currentWeekData.insightsFile, insightsMarkdown)
       console.log('[handleGenerateInsights] saveCurrentWeekFile call completed.')
 
       console.log('Insights saved successfully.')
@@ -172,8 +215,81 @@ export const App: React.FC = () => {
       // No alert on success, the updated content is the feedback
     } catch (error) {
       console.error('Error generating or saving insights:', error)
-      alert(
-        `An error occurred while generating insights: ${error instanceof Error ? error.message : String(error)}`
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        `An error occurred while generating insights.`,
+        'AI Generation Error',
+        errorMessage
+      )
+    } finally {
+      setIsGeneratingInsights(false)
+    }
+  }
+
+  const onGenerateOverviewInsights = async (): Promise<void> => {
+    console.log('Generate Overview Insights button clicked')
+    if (!configData || !overviewContent || !project || !currentWeekData) {
+      console.error(
+        'Cannot generate insights: Missing overview content, config, project, or current week data.'
+      )
+      await showErrorDialog('Could not generate insights. Missing necessary data or configuration.')
+      return
+    }
+
+    setIsGeneratingInsights(true)
+
+    // Check if the Anthropic API key exists in the config
+    if (!configData.anthropicApiKey) {
+      console.error('Anthropic API key not found in configuration.')
+      await showErrorDialog('Anthropic API key is missing in nebline.json.', 'Configuration Error')
+      setIsGeneratingInsights(false)
+      return
+    }
+
+    try {
+      console.log('[handleGenerateOverviewInsights] Fetching journal history...')
+      // Get the last 6 weeks of journal entries
+      const journalHistory = await fetchJournalHistory(
+        project.projectPath,
+        currentWeekData.weekFolderName,
+        6 // Get 6 weeks
+      )
+      console.log(
+        `[handleGenerateOverviewInsights] Fetched ${journalHistory.length} journal entries for history`
+      )
+
+      console.log('[handleGenerateOverviewInsights] Calling generateOverviewInsights function...')
+      // Create DocumentWithInsights object for overview content
+      const overviewWithInsights: DocumentWithInsights = {
+        document: overviewContent || '',
+        insights: overviewInsightsContent || ''
+      }
+
+      // Call the extracted function with journal history
+      const insightsMarkdown = await generateOverviewInsights({
+        overviewContent: overviewWithInsights,
+        config: configData,
+        journalHistory: journalHistory
+      })
+      console.log('[handleGenerateOverviewInsights] generateOverviewInsights function completed.')
+
+      console.log('[handleGenerateOverviewInsights] Insights received, preparing to save file')
+
+      // Save the generated insights
+      saveOverviewInsightsContent(insightsMarkdown)
+      console.log('[handleGenerateOverviewInsights] saveOverviewInsightsContent call completed.')
+
+      console.log('Overview insights saved successfully.')
+      // Switch to the insights tab after generation
+      setActiveOverviewTab('insights')
+      // No alert on success, the updated content is the feedback
+    } catch (error) {
+      console.error('Error generating or saving overview insights:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        `An error occurred while generating overview insights.`,
+        'AI Generation Error',
+        errorMessage
       )
     } finally {
       setIsGeneratingInsights(false)
@@ -227,12 +343,20 @@ export const App: React.FC = () => {
       </div>
       <Main>
         <div className="flex flex-col h-full">
-          {/* Top Bar (only show in journal view) */}
+          {/* Top Bar (show in journal and overview views) */}
           {view === 'journal' && (
             <TopBar
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              onGenerateInsights={onGenerateInsights}
+              onGenerateInsights={onGenerateJournalInsights}
+              isGeneratingInsights={isGeneratingInsights}
+            />
+          )}
+          {view === 'overview' && (
+            <OverviewTopBar
+              activeTab={activeOverviewTab}
+              setActiveTab={setActiveOverviewTab}
+              onGenerateInsights={onGenerateOverviewInsights}
               isGeneratingInsights={isGeneratingInsights}
             />
           )}
@@ -253,13 +377,13 @@ export const App: React.FC = () => {
                 <MonacoEditor
                   key={
                     // Use currentWeekData for key
-                    activeTab === 'journal'
+                    activeTab === 'document'
                       ? currentWeekData.journalFile
                       : currentWeekData.insightsFile
                   }
                   value={
                     // Use currentWeekData for value
-                    activeTab === 'journal'
+                    activeTab === 'document'
                       ? currentWeekData.journalContent
                       : currentWeekData.insightsContent
                   }
@@ -275,14 +399,17 @@ export const App: React.FC = () => {
                 language="json" // Explicitly set language
               />
             )}
-            {view === 'about' && (
+            {view === 'overview' && (
               <MonacoEditor
-                key="about-editor"
-                value={aboutContent ?? ''}
-                onChange={(content) => {
-                  const newContent = content ?? ''
-                  saveAboutContent(newContent)
-                }}
+                key={
+                  activeOverviewTab === 'document' ? 'overview-editor' : 'overview-insights-editor'
+                }
+                value={
+                  activeOverviewTab === 'document'
+                    ? (overviewContent ?? '')
+                    : (overviewInsightsContent ?? '')
+                }
+                onChange={onEditorChange}
                 language="markdown" // Explicitly set language
               />
             )}

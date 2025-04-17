@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron' // Added Menu, dialog
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, shell } from 'electron' // Added Menu, dialog, net
 import fs from 'fs/promises' // Use promises API for async operations
 import { dirname, join } from 'path' // Added dirname
 import { exec, spawn } from 'child_process' // Import child_process methods
@@ -372,6 +372,88 @@ app.whenReady().then(() => {
     } catch (error) {
       console.error('Failed to open terminal at path:', error)
       return false
+    }
+  })
+  // --- Show Dialog Handler ---
+  ipcMain.handle('dialog:showMessageBox', async (event, options) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window) {
+      console.error('Could not find browser window for dialog')
+      return { response: 0 }
+    }
+
+    return await dialog.showMessageBox(window, options)
+  })
+
+  // --- AI API Proxy Handler ---
+  ipcMain.handle('ai:proxyRequest', async (_event, options) => {
+    try {
+      const { url, method, headers, body } = options
+
+      console.log(`Making proxy request to: ${url}`)
+
+      const request = net.request({
+        method: method || 'POST',
+        url
+      })
+
+      // Add headers
+      if (headers) {
+        Object.entries(headers).forEach(([key, value]) => {
+          request.setHeader(key, value as string)
+        })
+      }
+
+      return new Promise((resolve, reject) => {
+        let responseData = ''
+
+        request.on('response', (response) => {
+          response.on('data', (chunk) => {
+            responseData += chunk.toString()
+          })
+
+          response.on('end', () => {
+            try {
+              // Try to parse JSON response
+              const parsedData = JSON.parse(responseData)
+              resolve({
+                status: response.statusCode,
+                headers: response.headers,
+                data: parsedData
+              })
+            } catch (_e) {
+              // If not JSON, return as string
+              resolve({
+                status: response.statusCode,
+                headers: response.headers,
+                data: responseData
+              })
+            }
+          })
+
+          response.on('error', (error) => {
+            console.error('Error in proxy response:', error)
+            reject(error)
+          })
+        })
+
+        request.on('error', (error) => {
+          console.error('Error in proxy request:', error)
+          reject(error)
+        })
+
+        // Write request body if provided
+        if (body) {
+          // If body is already a string, use it directly, otherwise stringify it
+          const bodyData = typeof body === 'string' ? body : JSON.stringify(body)
+          request.write(bodyData)
+        }
+
+        request.end()
+      })
+    } catch (error) {
+      console.error('Error in AI proxy handler:', error)
+      throw error
     }
   })
   // --- End IPC Handlers ---

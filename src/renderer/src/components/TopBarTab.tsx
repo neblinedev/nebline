@@ -1,7 +1,7 @@
 import React from 'react'
 import classNames from 'classnames'
 
-type TabType = 'journal' | 'insights'
+export type TabType = 'document' | 'insights'
 
 interface TopBarTabProps {
   label: string

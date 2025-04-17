@@ -1,16 +1,18 @@
 import ZoomControls from '@renderer/components/ZoomControls'
 import React from 'react'
-import TopBarTab, { TabType } from './TopBarTab'
-import YearProgress from './YearProgress' // Import the new component
+import TopBarTab from './TopBarTab'
+import YearProgress from './YearProgress'
 
-interface TopBarProps {
+export type TabType = 'document' | 'insights'
+
+interface OverviewTopBarProps {
   activeTab: TabType
   setActiveTab: (tab: TabType) => void
-  onGenerateInsights: () => void // Callback for the new button
-  isGeneratingInsights: boolean // To disable button while generating
+  onGenerateInsights: () => void
+  isGeneratingInsights: boolean
 }
 
-const TopBar: React.FC<TopBarProps> = ({
+const OverviewTopBar: React.FC<OverviewTopBarProps> = ({
   activeTab,
   setActiveTab,
   onGenerateInsights,
@@ -52,4 +54,4 @@ const TopBar: React.FC<TopBarProps> = ({
   )
 }
 
-export default TopBar
+export default OverviewTopBar
