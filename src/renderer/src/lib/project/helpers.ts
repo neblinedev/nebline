@@ -97,7 +97,15 @@ export async function openProject(folderPath: string): Promise<NeblineProject | 
     console.log(`Ensuring journal directory exists: ${journalPath}`)
     await window.api.ensureDirExists(journalPath) // Use window.api
 
-    // 3. Load today's journal by default (which also ensures the folder/file)
+    // 3. Ensure about.md file exists
+    const aboutFilePath = await window.api.joinPath(folderPath, 'about.md')
+    const aboutExists = await window.api.checkPathExists(aboutFilePath)
+    if (!aboutExists) {
+      console.log(`Creating empty about.md file at ${aboutFilePath}`)
+      await window.api.writeFileContent(aboutFilePath, '')
+    }
+
+    // 4. Load today's journal by default (which also ensures the folder/file)
     const today = new Date()
     const weekData = await loadWeek(folderPath, today) // Changed from loadDay to loadWeek
 

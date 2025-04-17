@@ -14,27 +14,34 @@ export type ProjectData = {
   project: NeblineProject | null
   currentWeekData: JournalWeek | null
   configData: ProjectConfig | null
+  aboutContent: string | null
   availableWeeks: string[]
   isProjectLoading: boolean
   isWeekLoading: boolean
+  isAboutLoading: boolean
   error: string | null
-  view: 'journal' | 'configuration'
+  view: 'journal' | 'configuration' | 'about'
   loadProject: (folderPath: string) => Promise<void>
   loadWeek: (date: Date) => Promise<void>
+  loadAbout: () => Promise<void>
   saveCurrentWeekFile: (filePath: string, content: string) => Promise<void>
   saveConfigData: (content: string) => Promise<void>
+  saveAboutContent: (content: string) => Promise<void>
   toggleView: () => void
+  setView: (view: 'journal' | 'configuration' | 'about') => void
 }
 
 export const useProject = (): ProjectData => {
   const [project, setProject] = useState<NeblineProject | null>(null)
   const [currentWeekData, setCurrentWeekData] = useState<JournalWeek | null>(null)
   const [configData, setConfigData] = useState<ProjectConfig | null>(null)
+  const [aboutContent, setAboutContent] = useState<string | null>(null)
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([])
   const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false)
   const [isWeekLoading, setIsWeekLoading] = useState<boolean>(false)
+  const [isAboutLoading, setIsAboutLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [view, setView] = useState<'journal' | 'configuration'>('journal')
+  const [view, setViewState] = useState<'journal' | 'configuration' | 'about'>('journal')
 
   const fetchAvailableWeeks = useCallback(async (projectPath: string) => {
     console.log('[Hook] Fetching available weeks for:', projectPath)
@@ -106,6 +113,26 @@ export const useProject = (): ProjectData => {
             console.error('Hook: Error loading configuration file', configErr)
             // Don't necessarily clear configData if loading fails, maybe keep old one?
           }
+
+          // Load about.md file if it exists
+          try {
+            const aboutFilePath = await window.api.joinPath(openedProject.projectPath, 'about.md')
+            const exists = await window.api.checkPathExists(aboutFilePath)
+            if (exists) {
+              const aboutContent = await window.api.readFileContent(aboutFilePath)
+              setAboutContent(aboutContent)
+              console.log('Hook: About file loaded')
+            } else {
+              // Create an empty about.md file
+              await window.api.writeFileContent(aboutFilePath, '')
+              setAboutContent('')
+              console.log('Hook: Empty about file created')
+            }
+          } catch (aboutErr) {
+            console.error('Hook: Error loading about file', aboutErr)
+            setAboutContent('')
+          }
+
           setIsWeekLoading(false)
         } else {
           throw new Error('Failed to open project folder.')
@@ -120,6 +147,7 @@ export const useProject = (): ProjectData => {
         setProject(null)
         setCurrentWeekData(null)
         setConfigData(null)
+        setAboutContent(null)
         setAvailableWeeks([])
         setIsWeekLoading(false)
       } finally {
@@ -134,6 +162,9 @@ export const useProject = (): ProjectData => {
       if (!project) {
         setError('No project is currently open.')
         return
+      }
+      if (view === 'about') {
+        setViewState('journal')
       }
       // setIsWeekLoading(true); // Consider adding if week loading is slow
       setError(null)
@@ -167,7 +198,7 @@ export const useProject = (): ProjectData => {
         // setIsWeekLoading(false); // Consider adding if week loading is slow
       }
     },
-    [project]
+    [project, view]
   )
 
   const saveCurrentWeekFile = useCallback(
@@ -210,6 +241,69 @@ export const useProject = (): ProjectData => {
       }
     },
     [currentWeekData]
+  )
+
+  const loadAbout = useCallback(async () => {
+    if (!project?.projectPath) {
+      setError('No project is currently open.')
+      return
+    }
+
+    setIsAboutLoading(true)
+    setError(null)
+    console.log('Hook: Loading about.md file')
+
+    try {
+      const aboutFilePath = await window.api.joinPath(project.projectPath, 'about.md')
+      const exists = await window.api.checkPathExists(aboutFilePath)
+
+      if (!exists) {
+        // Create an empty about.md file if it doesn't exist
+        await window.api.writeFileContent(aboutFilePath, '')
+        setAboutContent('')
+        console.log('Hook: Created empty about.md file')
+      } else {
+        const content = await window.api.readFileContent(aboutFilePath)
+        setAboutContent(content)
+        console.log('Hook: About.md file loaded successfully')
+      }
+    } catch (err) {
+      console.error('Hook: Error loading about.md file', err)
+      const message =
+        err instanceof Error ? err.message : 'An unknown error occurred while loading about.md.'
+      setError(message)
+    } finally {
+      setIsAboutLoading(false)
+    }
+  }, [project])
+
+  const saveAboutContent = useCallback(
+    async (content: string) => {
+      if (!project?.projectPath) {
+        console.error('Hook: Cannot save about, no project path.')
+        setError('Cannot save about, no project is currently loaded.')
+        return
+      }
+
+      console.log('Hook: Saving about.md content')
+      try {
+        const aboutFilePath = await window.api.joinPath(project.projectPath, 'about.md')
+        const success = await saveFileContentLogic(aboutFilePath, content)
+
+        if (success) {
+          setAboutContent(content)
+          console.log('Hook: About.md saved successfully')
+        } else {
+          throw new Error('Failed to save about.md content.')
+        }
+      } catch (err) {
+        console.error('Hook: Error saving about.md file', err)
+        const message =
+          err instanceof Error ? err.message : 'An unknown error occurred while saving about.md.'
+        setError(message)
+      }
+    },
+    [project]
   )
 
   const saveConfigData = useCallback(
@@ -260,23 +354,43 @@ export const useProject = (): ProjectData => {
   )
 
   const toggleView = useCallback(() => {
-    setView((currentView) => (currentView === 'journal' ? 'configuration' : 'journal'))
+    setViewState((currentView) => {
+      if (currentView === 'journal') return 'configuration'
+      if (currentView === 'configuration') return 'journal'
+      return 'journal' // When in about view, go to journal
+    })
     console.log(`Hook: Toggled view to ${view === 'journal' ? 'configuration' : 'journal'}`)
   }, [view])
+
+  const setView = useCallback(
+    (newView: 'journal' | 'configuration' | 'about') => {
+      setViewState(newView)
+      if (newView === 'about') {
+        loadAbout()
+      }
+      console.log(`Hook: View set to ${newView}`)
+    },
+    [loadAbout]
+  )
 
   return {
     project,
     currentWeekData,
     configData,
+    aboutContent,
     availableWeeks,
     isProjectLoading,
     isWeekLoading,
+    isAboutLoading,
     error,
     view,
     loadProject,
     loadWeek,
+    loadAbout,
     saveCurrentWeekFile,
     saveConfigData,
-    toggleView
+    saveAboutContent,
+    toggleView,
+    setView
   }
 }

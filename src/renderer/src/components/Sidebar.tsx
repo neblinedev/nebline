@@ -8,8 +8,8 @@ interface SidebarProps {
   loadWeek: (date: Date) => Promise<void>
   currentWeekData: JournalWeek | null
   isWeekLoading: boolean
-  view: 'journal' | 'configuration'
-  toggleView: () => void
+  view: 'journal' | 'configuration' | 'about'
+  setView: (view: 'journal' | 'configuration' | 'about') => void
 }
 
 function Sidebar({
@@ -18,7 +18,7 @@ function Sidebar({
   currentWeekData,
   isWeekLoading,
   view,
-  toggleView
+  setView
 }: SidebarProps): JSX.Element {
   const handleWeekClick = (weekString: string): void => {
     // Don't allow loading another week if we're already loading one
@@ -31,13 +31,24 @@ function Sidebar({
       const dateToLoad = dayjs().year(year).isoWeek(week).isoWeekday(1).toDate()
 
       console.log(`Sidebar: Loading week ${weekString} (using date ${dateToLoad.toISOString()})`)
-      if (view === 'configuration') {
-        toggleView()
+      if (view === 'configuration' || view === 'about') {
+        setView('journal')
       }
-      loadWeek(dateToLoad) // Use loadWeek
+      loadWeek(dateToLoad)
     } else {
       console.error(`Sidebar: Failed to parse week string: ${weekString}`)
     }
+  }
+
+  const handleConfigClick = (): void => {
+    setView(view === 'configuration' ? 'journal' : 'configuration')
+  }
+
+  const handleAboutClick = (): void => {
+    if (isWeekLoading) return
+
+    console.log('Sidebar: Loading about section')
+    setView('about')
   }
 
   const currentWeekString = currentWeekData?.weekFolderName ?? null
@@ -47,7 +58,7 @@ function Sidebar({
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Nebline</h2>
         <button
-          onClick={toggleView}
+          onClick={handleConfigClick}
           className={classNames(
             'text-xl p-2 rounded transition-colors duration-150 ease-in-out hover:bg-primary-hover',
             {
@@ -60,12 +71,12 @@ function Sidebar({
           <i className="fa fa-cog"></i>
         </button>
       </div>
-      <nav>
+      <nav className="">
         {/* Use optional chaining and check length */}
         {availableWeeks && availableWeeks.length > 0 ? (
           <ul className="space-y-2">
             {availableWeeks.map((week) => {
-              const isActive = week === currentWeekString // Compare with currentWeekString
+              const isActive = week === currentWeekString && view === 'journal' // Compare with currentWeekString
 
               console.log(`Sidebar: Rendering week ${week} (active: ${isActive})`)
 
@@ -91,15 +102,15 @@ function Sidebar({
               return (
                 <li key={week}>
                   <button
-                    onClick={() => handleWeekClick(week)} // Use handleWeekClick
-                    disabled={isWeekLoading} // Disable buttons when loading
+                    onClick={() => handleWeekClick(week)}
+                    disabled={isWeekLoading}
                     className={classNames(
                       'w-full text-left block px-3 py-2 rounded transition-colors duration-150 ease-in-out',
                       {
-                        'bg-primary-base hover:bg-primary-hover': isActive, // Background for active
+                        'bg-primary-base hover:bg-primary-hover': isActive,
                         'bg-surface-1 hover:bg-gray-200 hover:text-gray-800':
                           !isActive && !isWeekLoading,
-                        'opacity-50 cursor-not-allowed': isWeekLoading // Use isWeekLoading
+                        'opacity-50 cursor-not-allowed': isWeekLoading
                       }
                     )}
                   >
@@ -126,6 +137,24 @@ function Sidebar({
         ) : (
           <p className="text-sm text-gray-500">No journal weeks found.</p>
         )}
+        <div className="mt-2 pt-2 border-t border-surface-2" />
+        <div>
+          <button
+            onClick={handleAboutClick}
+            disabled={isWeekLoading}
+            className={classNames(
+              'w-full text-left block px-3 py-2 rounded transition-colors duration-150 ease-in-out',
+              {
+                'bg-primary-base hover:bg-primary-hover': view === 'about',
+                'bg-surface-1 hover:bg-gray-200 hover:text-gray-800':
+                  view !== 'about' && !isWeekLoading,
+                'opacity-50 cursor-not-allowed': isWeekLoading
+              }
+            )}
+          >
+            <div className={classNames({ 'font-medium': view === 'about' })}>About me</div>
+          </button>
+        </div>
       </nav>
     </div>
   )

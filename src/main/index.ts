@@ -85,11 +85,11 @@ function createWindow(): void {
               `window.api._getCurrentProject && window.api._getCurrentProject()`
             )
 
-            if (currentProject?.journalPath) {
+            if (currentProject?.projectPath) {
               // Use existing handler for opening terminal
               if (process.platform === 'darwin') {
                 // Using Terminal.app on macOS
-                const terminalCommand = `open -a Terminal "${currentProject.journalPath}"`
+                const terminalCommand = `open -a Terminal "${currentProject.projectPath}"`
                 exec(terminalCommand, (error) => {
                   if (error) {
                     console.error('Failed to open Terminal:', error)
@@ -97,13 +97,13 @@ function createWindow(): void {
                 })
               } else if (process.platform === 'win32') {
                 // For Windows
-                spawn('cmd.exe', ['/K', `cd /d "${currentProject.journalPath}"`], {
+                spawn('cmd.exe', ['/K', `cd /d "${currentProject.projectPath}"`], {
                   detached: true,
                   stdio: 'ignore'
                 })
               } else {
                 // For Linux
-                spawn('xterm', ['-e', `cd "${currentProject.journalPath}" && bash`], {
+                spawn('xterm', ['-e', `cd "${currentProject.projectPath}" && bash`], {
                   detached: true,
                   stdio: 'ignore'
                 })

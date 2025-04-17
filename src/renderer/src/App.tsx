@@ -15,6 +15,7 @@ export const App: React.FC = () => {
     project,
     currentWeekData,
     configData,
+    aboutContent,
     availableWeeks,
     isProjectLoading,
     isWeekLoading,
@@ -24,7 +25,8 @@ export const App: React.FC = () => {
     loadWeek,
     saveCurrentWeekFile,
     saveConfigData,
-    toggleView
+    saveAboutContent,
+    setView
   } = useProject()
 
   const [activeTab, setActiveTab] = useState<'journal' | 'insights'>('journal')
@@ -220,7 +222,7 @@ export const App: React.FC = () => {
           currentWeekData={currentWeekData}
           isWeekLoading={isWeekLoading}
           view={view}
-          toggleView={toggleView}
+          setView={setView}
         />
       </div>
       <Main>
@@ -271,6 +273,17 @@ export const App: React.FC = () => {
                 value={configData ? JSON.stringify(configData, null, 2) : ''}
                 onChange={onEditorChange}
                 language="json" // Explicitly set language
+              />
+            )}
+            {view === 'about' && (
+              <MonacoEditor
+                key="about-editor"
+                value={aboutContent ?? ''}
+                onChange={(content) => {
+                  const newContent = content ?? ''
+                  saveAboutContent(newContent)
+                }}
+                language="markdown" // Explicitly set language
               />
             )}
           </div>
