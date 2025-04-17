@@ -3,7 +3,7 @@ import weekOfYear from 'dayjs/plugin/weekOfYear' // Needed for week number
 import isoWeek from 'dayjs/plugin/isoWeek' // Needed for ISO week calculations
 import utc from 'dayjs/plugin/utc' // Recommended for consistency
 import weekday from 'dayjs/plugin/weekday' // Needed for getting day of week
-
+import { ProjectConfig } from './project-schema'
 dayjs.extend(weekOfYear)
 dayjs.extend(isoWeek)
 dayjs.extend(utc)
@@ -18,7 +18,7 @@ export type NeblineProject = {
 }
 
 // Define the structure for a specific week's data
-export interface JournalWeek {
+export type JournalWeek = {
   weekPath: string
   weekFolderName: string
   journalFile: string
@@ -28,10 +28,6 @@ export interface JournalWeek {
   weekStartDate: Date
   weekEndDate: Date
 }
-
-// --- Utility Functions ---
-
-// --- Date Utility Functions ---
 
 // Gets the ISO week number (1-53)
 function getWeekNumber(date: Date): number {
@@ -203,7 +199,7 @@ export async function saveFileContent(filePath: string, content: string): Promis
 /**
  * Loads the configuration file (nebline.json) for a project.
  */
-export async function loadConfigFile(projectPath: string): Promise<string> {
+export async function loadConfig(projectPath: string): Promise<ProjectConfig> {
   try {
     console.log(`Loading configuration file from: ${projectPath}`)
     const configFilePath = await window.api.joinPath(projectPath, 'nebline.json')

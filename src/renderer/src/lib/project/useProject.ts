@@ -1,18 +1,19 @@
 import { useState, useCallback } from 'react'
 import {
   JournalWeek,
-  loadConfigFile as loadConfigFileLogic,
+  loadConfig as loadConfigLogic,
   loadWeek as loadWeekLogic,
   NeblineProject,
   openProject,
   saveConfigFile as saveConfigFileLogic,
   saveFileContent as saveFileContentLogic
-} from './lib/project'
+} from './project'
+import { ProjectConfig } from './project-schema'
 
-export interface ProjectContextData {
+export type ProjectData = {
   project: NeblineProject | null
   currentWeekData: JournalWeek | null
-  configData: string | null
+  configData: ProjectConfig | null
   availableWeeks: string[]
   isProjectLoading: boolean
   isWeekLoading: boolean
@@ -25,17 +26,16 @@ export interface ProjectContextData {
   toggleView: () => void
 }
 
-export const useProject = (): ProjectContextData => {
+export const useProject = (): ProjectData => {
   const [project, setProject] = useState<NeblineProject | null>(null)
   const [currentWeekData, setCurrentWeekData] = useState<JournalWeek | null>(null)
-  const [configData, setConfigData] = useState<string | null>(null)
+  const [configData, setConfigData] = useState<ProjectConfig | null>(null)
   const [availableWeeks, setAvailableWeeks] = useState<string[]>([])
   const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false)
   const [isWeekLoading, setIsWeekLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [view, setView] = useState<'journal' | 'configuration'>('journal')
 
-  // Function to fetch the list of available weeks by reading the directory structure
   const fetchAvailableWeeks = useCallback(async (projectPath: string) => {
     console.log('[Hook] Fetching available weeks for:', projectPath)
     const weeks: string[] = []
@@ -45,14 +45,12 @@ export const useProject = (): ProjectContextData => {
 
       if (yearDirs) {
         for (const yearDir of yearDirs) {
-          // Check if it's a directory and looks like a year (e.g., '2025')
           if (yearDir.isDirectory && /^\d{4}$/.test(yearDir.name)) {
             const yearPath = await window.api.joinPath(journalDir, yearDir.name)
             const weekDirs = await window.api.readDir(yearPath)
 
             if (weekDirs) {
               for (const weekDir of weekDirs) {
-                // Check if it's a directory and matches YYYY-CW-WW format
                 if (weekDir.isDirectory && /^\d{4}-CW-\d{2}$/.test(weekDir.name)) {
                   weeks.push(weekDir.name)
                 }
@@ -66,7 +64,6 @@ export const useProject = (): ProjectContextData => {
         console.log(`[Hook] Journal directory not found or empty at ${journalDir}`)
       }
 
-      // Sort weeks chronologically (most recent first)
       weeks.sort((a, b) => b.localeCompare(a))
       setAvailableWeeks(weeks)
       console.log('[Hook] Available weeks loaded:', weeks)
@@ -102,7 +99,7 @@ export const useProject = (): ProjectContextData => {
           }
 
           try {
-            const configFileContent = await loadConfigFileLogic(openedProject.projectPath)
+            const configFileContent = await loadConfigLogic(openedProject.projectPath)
             setConfigData(configFileContent)
             console.log('Hook: Configuration file loaded')
           } catch (configErr) {

@@ -5,33 +5,31 @@ import TopBar from './components/TopBar' // Import the new TopBar component
 import MonacoEditor from '@renderer/components/MonacoEditor'
 import { getFromLocalStorage, saveToLocalStorage } from './utils/localStorage'
 import { LOCAL_STORAGE_KEYS } from './utils/constants'
-import { useProject } from './useProject' // Import the hook
-import { debounce } from 'lodash-es' // Import debounce
-import { generateInsights } from './lib/ai/generateInsights' // Import the new function
-import WelcomeScreen from './components/WelcomeScreen' // Import the WelcomeScreen component
+import { useProject } from './lib/project/useProject'
+import { debounce } from 'lodash-es'
+import { generateInsights } from './lib/ai/generateInsights'
+import WelcomeScreen from './components/WelcomeScreen'
 
 export const App: React.FC = () => {
   const {
     project,
     currentWeekData,
     configData,
-    availableWeeks, // Add availableWeeks
+    availableWeeks,
     isProjectLoading,
-    isWeekLoading, // Add isWeekLoading
+    isWeekLoading,
     error,
     view,
     loadProject: openProject,
-    loadWeek, // Add loadWeek
+    loadWeek,
     saveCurrentWeekFile,
     saveConfiguration,
-    toggleView // Add toggleView
+    toggleView
   } = useProject()
 
-  // State to manage which tab (journal or insights) is active
   const [activeTab, setActiveTab] = useState<'journal' | 'insights'>('journal')
-  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false) // State for generation loading
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
 
-  // Effect to load project from localStorage on initial mount
   useEffect(() => {
     const savedFolder = getFromLocalStorage<string | null>(LOCAL_STORAGE_KEYS.SELECTED_FOLDER, null)
     console.log('[App Effect - Initial Load] Reading localStorage:', savedFolder)
@@ -117,11 +115,9 @@ export const App: React.FC = () => {
     [saveConfiguration]
   )
 
-  // Handler for editor changes based on current view and active tab
-  const handleEditorChange = (newValue: string | undefined): void => {
-    const content = newValue ?? '' // Handle undefined from Monaco
+  const onEditorChange = (newValue: string | undefined): void => {
+    const content = newValue ?? ''
     if (view === 'journal' && currentWeekData) {
-      // Use currentWeekData
       if (activeTab === 'journal') {
         debouncedSaveJournal(currentWeekData.journalFile, content) // Use currentWeekData
       } else if (activeTab === 'insights') {
@@ -132,13 +128,10 @@ export const App: React.FC = () => {
     }
   }
 
-  // Placeholder for the insight generation logic
-  const handleGenerateInsights = async (): Promise<void> => {
+  const onGenerateInsights = async (): Promise<void> => {
     console.log('Generate Insights button clicked')
     if (!currentWeekData || !configData || !saveCurrentWeekFile) {
-      // Use currentWeekData and saveCurrentWeekFile
       console.error('Cannot generate insights: Missing current day data, config, or save function.')
-      // TODO: Show user feedback (e.g., toast notification)
       alert('Could not generate insights. Missing necessary data or configuration.')
       return
     }
@@ -227,7 +220,6 @@ export const App: React.FC = () => {
   // 4. Project Loaded State - Render the main application layout
   return (
     <div className="flex h-screen">
-      {/* Sidebar is always rendered when project is loaded */}
       <div className="w-64 flex-shrink-0">
         <Sidebar
           availableWeeks={availableWeeks}
@@ -238,8 +230,6 @@ export const App: React.FC = () => {
           toggleView={toggleView}
         />
       </div>
-
-      {/* Main content area */}
       <Main>
         <div className="flex flex-col h-full">
           {/* Top Bar (only show in journal view) */}
@@ -247,7 +237,7 @@ export const App: React.FC = () => {
             <TopBar
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              onGenerateInsights={handleGenerateInsights}
+              onGenerateInsights={onGenerateInsights}
               isGeneratingInsights={isGeneratingInsights}
             />
           )}
@@ -270,15 +260,15 @@ export const App: React.FC = () => {
                       ? currentWeekData.journalContent
                       : currentWeekData.insightsContent
                   }
-                  onChange={handleEditorChange}
+                  onChange={onEditorChange}
                   language="markdown" // Explicitly set language
                 />
               )}
             {view === 'configuration' && (
               <MonacoEditor
                 key="configuration-editor"
-                value={configData ?? ''}
-                onChange={handleEditorChange}
+                value={configData || ''}
+                onChange={onEditorChange}
                 language="json" // Explicitly set language
               />
             )}
