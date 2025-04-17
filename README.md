@@ -78,7 +78,103 @@ This will start the application with hot-reload enabled.
 
 ## Configuration
 
-Currently, Nebline only supports Anthropic Claude Sonnet 3.7 for AI insights. To use this feature, you must set your `anthropicApiKey` in the `nebline.json` file.
+Nebline is designed for power users who want full control over their journaling experience and AI model selection. The application uses a configuration file (`nebline.json`) that follows a specific schema to manage AI providers and API keys.
+
+### The `nebline.json` Configuration File
+
+When you first point Nebline to a folder, it creates a `nebline.json` file with the following structure:
+
+```json
+{
+  "model": "anthropic:claude-3-7-sonnet-20250219",
+  "anthropicApiKey": "",
+  "openAiApiKey": "",
+  "openRouterApiKey": "",
+  "googleApiKey": ""
+}
+```
+
+### Configuration Schema
+
+The configuration follows the schema defined in `src/renderer/src/lib/project/project-schema.ts`:
+
+```typescript
+export const projectConfigSchema = z.object({
+  model: z.string(),
+  anthropicApiKey: z.string(),
+  openAiApiKey: z.string(),
+  googleApiKey: z.string(),
+  openRouterApiKey: z.string()
+})
+```
+
+### AI Provider Configuration
+
+Nebline uses the AI SDK to interact with different AI providers. The AI registry is populated based on your `ProjectConfig` values:
+
+1. **Model Selection**: The `model` field determines which AI provider will be used for generating insights. The format is `provider:model-name`.
+
+2. **Provider Prefix**: The provider is determined by the prefix of the model string:
+
+   - `anthropic:` - Uses Anthropic's models (requires `anthropicApiKey`)
+   - `openai:` - Uses OpenAI's models (requires `openAiApiKey`)
+   - `openrouter:` - Uses OpenRouter's models (requires `openRouterApiKey`)
+
+3. **API Keys**: You only need to provide the API key for the provider you're using. Keys for unused providers can be left blank.
+
+### Examples
+
+#### Using Anthropic Claude
+
+```json
+{
+  "model": "anthropic:claude-3-7-sonnet-20250219",
+  "anthropicApiKey": "your-anthropic-api-key",
+  "openAiApiKey": "",
+  "openRouterApiKey": "",
+  "googleApiKey": ""
+}
+```
+
+#### Using OpenAI GPT-4
+
+```json
+{
+  "model": "openai:gpt-4-turbo",
+  "anthropicApiKey": "",
+  "openAiApiKey": "your-openai-api-key",
+  "openRouterApiKey": "",
+  "googleApiKey": ""
+}
+```
+
+#### Using OpenRouter (Special Case)
+
+OpenRouter allows access to various models from different providers through a single API. When using OpenRouter, specify the model with the format `openrouter:provider/model-name`:
+
+```json
+{
+  "model": "openrouter:google/gemini-2.5-pro-preview-03-25",
+  "anthropicApiKey": "",
+  "openAiApiKey": "",
+  "openRouterApiKey": "your-openrouter-api-key",
+  "googleApiKey": ""
+}
+```
+
+You can find a complete list of available models on the [OpenRouter Models page](https://openrouter.ai/models).
+
+### Obtaining API Keys
+
+To use Nebline's AI features, you'll need to obtain API keys from the respective providers:
+
+- **Anthropic**: Sign up at [Anthropic's website](https://www.anthropic.com/)
+- **OpenAI**: Sign up at [OpenAI's platform](https://platform.openai.com/)
+- **OpenRouter**: Sign up at [OpenRouter](https://openrouter.ai/)
+
+### Technical Note
+
+The AI registry in Nebline is updated when a project is loaded, using the configuration values from `nebline.json`. This approach allows for flexible model selection without hardcoding model names or using environment variables.
 
 ## Building
 
