@@ -69,10 +69,6 @@ function generateDefaultWeekContent(startDate: Date, formattedWeek: string): str
   return content
 }
 
-// --- Core Project Functions ---
-
-// --- Core Project Functions ---
-
 /**
  * Opens a project folder, ensures necessary files/folders exist,
  * and returns the project structure.

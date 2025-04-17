@@ -23,7 +23,7 @@ export const App: React.FC = () => {
     loadProject,
     loadWeek,
     saveCurrentWeekFile,
-    saveConfigurationFromString,
+    saveConfigData,
     toggleView
   } = useProject()
 
@@ -105,14 +105,14 @@ export const App: React.FC = () => {
   // --- Debounced Save for Configuration ---
   const debouncedSaveConfig = useCallback(
     debounce((content: string) => {
-      if (!saveConfigurationFromString) {
+      if (!saveConfigData) {
         console.warn('Debounced config save skipped: no save function')
         return
       }
       console.log('Debounced configuration save triggered')
-      saveConfigurationFromString(content)
+      saveConfigData(content)
     }, 1000),
-    [saveConfigurationFromString]
+    [saveConfigData]
   )
 
   const onEditorChange = (newValue: string | undefined): void => {
@@ -189,8 +189,9 @@ export const App: React.FC = () => {
     )
   }
 
-  // 2. Error State
-  if (error) {
+  // 2. Error State - Only show blocking errors that prevent app functionality
+  // Parsing errors and other non-critical errors should be shown as notifications instead
+  if (error && !project) {
     return (
       <div className="flex items-center justify-center h-screen text-red-500">
         <p>Error: {error}</p>
@@ -232,6 +233,14 @@ export const App: React.FC = () => {
               onGenerateInsights={onGenerateInsights}
               isGeneratingInsights={isGeneratingInsights}
             />
+          )}
+
+          {/* Error notification - only shown when there's an error but app can still function */}
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-2">
+              <p className="font-bold">Error</p>
+              <p>{error}</p>
+            </div>
           )}
 
           {/* Editor Area */}

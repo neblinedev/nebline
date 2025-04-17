@@ -22,7 +22,7 @@ export type ProjectData = {
   loadProject: (folderPath: string) => Promise<void>
   loadWeek: (date: Date) => Promise<void>
   saveCurrentWeekFile: (filePath: string, content: string) => Promise<void>
-  saveConfigurationFromString: (content: string) => Promise<void>
+  saveConfigData: (content: string) => Promise<void>
   toggleView: () => void
 }
 
@@ -212,7 +212,7 @@ export const useProject = (): ProjectData => {
     [currentWeekData]
   )
 
-  const saveConfigurationFromString = useCallback(
+  const saveConfigData = useCallback(
     async (jsonString: string) => {
       if (!project?.projectPath) {
         console.error('Hook: Cannot save configuration, no project path.')
@@ -221,23 +221,37 @@ export const useProject = (): ProjectData => {
       }
 
       console.log(`Hook: Saving configuration string to ${project.projectPath}`)
-      try {
-        // Parse the JSON string to validate it and get the object
-        const configObject = JSON.parse(jsonString) as ProjectConfig
 
+      // Always save the file content exactly as entered by the user
+      try {
         const success = await saveConfigFileLogic(project.projectPath, jsonString)
-        if (success) {
-          // Update local state with the parsed object
-          setConfigData(configObject)
-          console.log('Hook: Configuration save successful')
-        } else {
+        if (!success) {
           throw new Error('Failed to save configuration content.')
         }
-      } catch (err: unknown) {
-        console.error('Hook: Error saving configuration from string', err)
+        console.log('Hook: Configuration file saved successfully')
+
+        // Try to parse the JSON, but don't block saving if invalid
+        try {
+          const configObject = JSON.parse(jsonString) as ProjectConfig
+          // Only update state if the JSON is valid
+          setConfigData(configObject)
+          setError(null) // Clear any previous JSON error
+          console.log('Hook: Configuration parsed and state updated')
+        } catch (parseErr) {
+          // Set a non-blocking error message about invalid JSON
+          console.error('Hook: JSON parsing error', parseErr)
+          const message =
+            parseErr instanceof Error
+              ? `JSON syntax error: ${parseErr.message}`
+              : 'Invalid JSON syntax. The file was saved, but contains errors.'
+          setError(message)
+          // Don't update configData with invalid JSON
+        }
+      } catch (saveErr: unknown) {
+        console.error('Hook: Error saving configuration file', saveErr)
         const message =
-          err instanceof Error
-            ? err.message
+          saveErr instanceof Error
+            ? saveErr.message
             : 'An unknown error occurred while saving configuration.'
         setError(message)
       }
@@ -262,7 +276,7 @@ export const useProject = (): ProjectData => {
     loadProject,
     loadWeek,
     saveCurrentWeekFile,
-    saveConfigurationFromString,
+    saveConfigData,
     toggleView
   }
 }
