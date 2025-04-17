@@ -20,10 +20,10 @@ export const App: React.FC = () => {
     isWeekLoading,
     error,
     view,
-    loadProject: openProject,
+    loadProject,
     loadWeek,
     saveCurrentWeekFile,
-    saveConfiguration,
+    saveConfigurationFromString,
     toggleView
   } = useProject()
 
@@ -34,18 +34,18 @@ export const App: React.FC = () => {
     const savedFolder = getFromLocalStorage<string | null>(LOCAL_STORAGE_KEYS.SELECTED_FOLDER, null)
     console.log('[App Effect - Initial Load] Reading localStorage:', savedFolder)
     if (savedFolder) {
-      console.log('[App Effect - Initial Load] Found saved folder, calling openProject...')
-      openProject(savedFolder)
+      console.log('[App Effect - Initial Load] Found saved folder, calling loadProject...')
+      loadProject(savedFolder)
         .then(() => {
-          console.log('[App Effect - Initial Load] openProject promise resolved.')
+          console.log('[App Effect - Initial Load] loadProject promise resolved.')
         })
         .catch((err) => {
-          console.error('[App Effect - Initial Load] openProject promise rejected:', err)
+          console.error('[App Effect - Initial Load] loadProject promise rejected:', err)
         })
     } else {
       console.log('[App Effect - Initial Load] No saved folder found.')
     }
-  }, [openProject]) // Depend on openProject
+  }, [loadProject]) // Depend on loadProject
 
   // Effect to update the preload current project whenever it changes
   useEffect(() => {
@@ -60,9 +60,9 @@ export const App: React.FC = () => {
     window.api.onFolderSelected((folderPath) => {
       console.log('Folder selected via IPC:', folderPath)
       saveToLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_FOLDER, folderPath)
-      openProject(folderPath)
+      loadProject(folderPath)
     })
-  }, [openProject]) // Depend on openProject
+  }, [loadProject]) // Depend on loadProject
 
   // Reset active tab to journal when the day changes (identified by dayPath)
   useEffect(() => {
@@ -105,14 +105,14 @@ export const App: React.FC = () => {
   // --- Debounced Save for Configuration ---
   const debouncedSaveConfig = useCallback(
     debounce((content: string) => {
-      if (!saveConfiguration) {
+      if (!saveConfigurationFromString) {
         console.warn('Debounced config save skipped: no save function')
         return
       }
       console.log('Debounced configuration save triggered')
-      saveConfiguration(content)
+      saveConfigurationFromString(content)
     }, 1000),
-    [saveConfiguration]
+    [saveConfigurationFromString]
   )
 
   const onEditorChange = (newValue: string | undefined): void => {
@@ -137,17 +137,9 @@ export const App: React.FC = () => {
     }
 
     setIsGeneratingInsights(true)
-    let parsedConfig: { anthropicApiKey?: string } = {}
-    try {
-      parsedConfig = JSON.parse(configData)
-    } catch (parseError) {
-      console.error('Error parsing configuration JSON:', parseError)
-      alert('Error reading configuration. Please check nebline.json.')
-      setIsGeneratingInsights(false)
-      return
-    }
 
-    const apiKey = parsedConfig.anthropicApiKey
+    // configData is now a ProjectConfig object, not a string
+    const apiKey = configData.anthropicApiKey
     if (!apiKey) {
       console.error('Anthropic API key not found in configuration.')
       alert('Anthropic API key is missing in nebline.json.')
@@ -267,7 +259,7 @@ export const App: React.FC = () => {
             {view === 'configuration' && (
               <MonacoEditor
                 key="configuration-editor"
-                value={configData || ''}
+                value={configData ? JSON.stringify(configData, null, 2) : ''}
                 onChange={onEditorChange}
                 language="json" // Explicitly set language
               />

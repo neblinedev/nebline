@@ -209,14 +209,30 @@ export async function loadConfig(projectPath: string): Promise<ProjectConfig> {
     if (!exists) {
       // Create default config if it doesn't exist
       console.log('Configuration file does not exist, creating default')
-      const defaultConfig = JSON.stringify({ version: 1 }, null, 2)
-      await window.api.writeFileContent(configFilePath, defaultConfig)
+      const defaultConfig: ProjectConfig = {
+        model: '',
+        anthropicApiKey: '',
+        openAiApiKey: '',
+        googleApiKey: '',
+        openRouterApiKey: ''
+      }
+      const defaultConfigStr = JSON.stringify(defaultConfig, null, 2)
+      await window.api.writeFileContent(configFilePath, defaultConfigStr)
       return defaultConfig
     }
 
     const content = await window.api.readFileContent(configFilePath)
     console.log('Configuration file loaded successfully')
-    return content || '{}'
+
+    const defaultConfig: ProjectConfig = {
+      model: '',
+      anthropicApiKey: '',
+      openAiApiKey: '',
+      googleApiKey: '',
+      openRouterApiKey: ''
+    }
+
+    return content ? JSON.parse(content) : defaultConfig
   } catch (error) {
     console.error('Error loading configuration file:', error)
     throw error

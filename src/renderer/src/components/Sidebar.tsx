@@ -1,4 +1,4 @@
-import { JournalWeek } from '@renderer/lib/project/project'
+import { JournalWeek } from '@renderer/lib/project/helpers'
 import classNames from 'classnames'
 import dayjs from 'dayjs'
 import 'font-awesome/css/font-awesome.min.css'

@@ -7,7 +7,7 @@ import {
   openProject,
   saveConfigFile as saveConfigFileLogic,
   saveFileContent as saveFileContentLogic
-} from './project'
+} from './helpers'
 import { ProjectConfig } from './project-schema'
 
 export type ProjectData = {
@@ -22,7 +22,8 @@ export type ProjectData = {
   loadProject: (folderPath: string) => Promise<void>
   loadWeek: (date: Date) => Promise<void>
   saveCurrentWeekFile: (filePath: string, content: string) => Promise<void>
-  saveConfiguration: (content: string) => Promise<void>
+  saveConfigurationFromString: (content: string) => Promise<void>
+  saveConfigurationFromObject: (config: ProjectConfig) => Promise<void>
   toggleView: () => void
 }
 
@@ -212,26 +213,62 @@ export const useProject = (): ProjectData => {
     [currentWeekData]
   )
 
-  const saveConfiguration = useCallback(
-    async (content: string) => {
+  const saveConfigurationFromString = useCallback(
+    async (jsonString: string) => {
       if (!project?.projectPath) {
         console.error('Hook: Cannot save configuration, no project path.')
         setError('Cannot save configuration, no project is currently loaded.')
         return
       }
 
-      console.log(`Hook: Saving configuration to ${project.projectPath}`)
+      console.log(`Hook: Saving configuration string to ${project.projectPath}`)
       try {
-        const success = await saveConfigFileLogic(project.projectPath, content)
+        // Parse the JSON string to validate it and get the object
+        const configObject = JSON.parse(jsonString) as ProjectConfig
+
+        const success = await saveConfigFileLogic(project.projectPath, jsonString)
         if (success) {
-          // Update local state to keep hook state in sync
-          setConfigData(content)
+          // Update local state with the parsed object
+          setConfigData(configObject)
           console.log('Hook: Configuration save successful')
         } else {
           throw new Error('Failed to save configuration content.')
         }
       } catch (err: unknown) {
-        console.error('Hook: Error saving configuration', err)
+        console.error('Hook: Error saving configuration from string', err)
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'An unknown error occurred while saving configuration.'
+        setError(message)
+      }
+    },
+    [project]
+  )
+
+  const saveConfigurationFromObject = useCallback(
+    async (configObject: ProjectConfig) => {
+      if (!project?.projectPath) {
+        console.error('Hook: Cannot save configuration, no project path.')
+        setError('Cannot save configuration, no project is currently loaded.')
+        return
+      }
+
+      console.log(`Hook: Saving configuration object to ${project.projectPath}`)
+      try {
+        // Stringify the config object for saving to file
+        const jsonString = JSON.stringify(configObject, null, 2)
+
+        const success = await saveConfigFileLogic(project.projectPath, jsonString)
+        if (success) {
+          // Update local state with the object directly
+          setConfigData(configObject)
+          console.log('Hook: Configuration save successful')
+        } else {
+          throw new Error('Failed to save configuration content.')
+        }
+      } catch (err: unknown) {
+        console.error('Hook: Error saving configuration from object', err)
         const message =
           err instanceof Error
             ? err.message
@@ -259,7 +296,8 @@ export const useProject = (): ProjectData => {
     loadProject,
     loadWeek,
     saveCurrentWeekFile,
-    saveConfiguration,
+    saveConfigurationFromString,
+    saveConfigurationFromObject,
     toggleView
   }
 }
