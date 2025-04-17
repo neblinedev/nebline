@@ -23,7 +23,6 @@ export type ProjectData = {
   loadWeek: (date: Date) => Promise<void>
   saveCurrentWeekFile: (filePath: string, content: string) => Promise<void>
   saveConfigurationFromString: (content: string) => Promise<void>
-  saveConfigurationFromObject: (config: ProjectConfig) => Promise<void>
   toggleView: () => void
 }
 
@@ -246,39 +245,6 @@ export const useProject = (): ProjectData => {
     [project]
   )
 
-  const saveConfigurationFromObject = useCallback(
-    async (configObject: ProjectConfig) => {
-      if (!project?.projectPath) {
-        console.error('Hook: Cannot save configuration, no project path.')
-        setError('Cannot save configuration, no project is currently loaded.')
-        return
-      }
-
-      console.log(`Hook: Saving configuration object to ${project.projectPath}`)
-      try {
-        // Stringify the config object for saving to file
-        const jsonString = JSON.stringify(configObject, null, 2)
-
-        const success = await saveConfigFileLogic(project.projectPath, jsonString)
-        if (success) {
-          // Update local state with the object directly
-          setConfigData(configObject)
-          console.log('Hook: Configuration save successful')
-        } else {
-          throw new Error('Failed to save configuration content.')
-        }
-      } catch (err: unknown) {
-        console.error('Hook: Error saving configuration from object', err)
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'An unknown error occurred while saving configuration.'
-        setError(message)
-      }
-    },
-    [project]
-  )
-
   const toggleView = useCallback(() => {
     setView((currentView) => (currentView === 'journal' ? 'configuration' : 'journal'))
     console.log(`Hook: Toggled view to ${view === 'journal' ? 'configuration' : 'journal'}`)
@@ -297,7 +263,6 @@ export const useProject = (): ProjectData => {
     loadWeek,
     saveCurrentWeekFile,
     saveConfigurationFromString,
-    saveConfigurationFromObject,
     toggleView
   }
 }
