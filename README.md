@@ -26,12 +26,14 @@ When you point Nebline to a local folder, it automatically creates the following
 
 ```
 your-journal-folder/
-├── nebline.json       # Configuration file containing your AI API keys (set anthropicApiKey here)
+├── nebline.json       # Configuration file containing your AI API keys
+├── overview.md       # Contains long-term information about the user
+├── insights.md       # Contains AI analysis on the overview and recent journal entries
 └── journal/
     └── YYYY/          # Year folders (e.g., 2025)
         └── WW/        # Calendar week folders (e.g., 01, 02, etc.)
             ├── journal.md    # Your journal entries for the week
-            └── insights.md   # AI-generated insights (created when you click "Generate insights")
+            └── insights.md   # AI-generated insights for the specific week
 ```
 
 Each week's journal is stored in a separate folder, organized by year and calendar week number, making it easy to navigate and maintain your journaling practice over time.
