@@ -7,7 +7,7 @@ import { getFromLocalStorage, saveToLocalStorage } from './utils/localStorage'
 import { LOCAL_STORAGE_KEYS } from './utils/constants'
 import { useProject } from './lib/project/useProject'
 import { debounce } from 'lodash-es'
-import { generateJournalInsights, generateOverviewInsights } from './lib/ai/generateInsights'
+import { generateWeekInsights, generateOverviewInsights } from './lib/ai/generateInsights'
 import WelcomeScreen from './components/WelcomeScreen'
 import { TabType } from '@renderer/components/TopBarTab'
 import OverviewTopBar from '@renderer/components/OverviewTopBar'
@@ -193,7 +193,7 @@ export const App: React.FC = () => {
         insights: overviewInsightsContent || ''
       }
 
-      const insightsMarkdown = await generateJournalInsights({
+      const insightsMarkdown = await generateWeekInsights({
         config: configData,
         overviewContent: overviewWithInsights,
         journalHistory: journalHistory

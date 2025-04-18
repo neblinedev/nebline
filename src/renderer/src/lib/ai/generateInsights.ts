@@ -27,7 +27,7 @@ export interface GenerateJournalInsightsParams {
  * @returns A promise that resolves with the generated insights in markdown format.
  * @throws Will throw an error if the AI generation fails.
  */
-export async function generateJournalInsights({
+export async function generateWeekInsights({
   config,
   overviewContent,
   journalHistory
@@ -46,6 +46,8 @@ Please avoid being overly verbose and overly optimistic.
 -= Formulate Reflective Questions. Based on your observations, pose 2-3 open-ended questions to encourage deeper reflection by the user. (e.g., "What connection, if any, do you see between [theme 1] and [theme 2] this week?", "How did [coping mechanism used] feel compared to strategies you've tried before?", "What might be underlying the shift in focus towards [new theme]?").
 - You should generate insights in the same language as the language of the journal entries.
 - For each journal entry, I've included any previous analysis that was generated. You should use this previous analysis to inform your current insights, building upon previous observations when appropriate.
+- Do not output in structured markdown. You should output in a conversational style, like a psychologist might. Don't be verbose.
+- You do not need to cover every topic, it's preferable to elaborate on key points.
 
 ---
 ${
