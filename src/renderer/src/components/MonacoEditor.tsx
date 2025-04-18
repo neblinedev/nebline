@@ -1,9 +1,14 @@
 import { useRef, useEffect } from 'react'
 import ReactMonacoEditor, { monaco, EditorDidMount } from 'react-monaco-editor'
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api'
-import 'monaco-editor/esm/vs/language/json/monaco.contribution' // Import JSON language features
-import 'monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution' // Import Markdown language features
+
+// import 'monaco-editor/esm/vs/language/json/monaco.contribution' // Import JSON language featres
+// import 'monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution' // Import Markdown language features
+// import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+
+// --- Other Imports ---
 import { debounce } from 'lodash-es'
+
 // Define a custom theme
 monaco.editor.defineTheme('myCustomTheme', {
   base: 'vs-dark', // can be 'vs', 'vs-dark', 'hc-black'
@@ -66,7 +71,6 @@ function MonacoEditor({ value, onChange, language = 'markdown' }: MonacoEditorPr
     resizeObserver.observe(container)
 
     // Cleanup function
-    // Cleanup function
     return (): void => {
       debouncedLayout.cancel() // Cancel any pending debounced calls
       resizeObserver.disconnect()
@@ -93,6 +97,7 @@ function MonacoEditor({ value, onChange, language = 'markdown' }: MonacoEditorPr
           minimap: {
             enabled: false
           }
+          // No need to explicitly enable find widget here, the import handles it
         }}
       />
     </div>
