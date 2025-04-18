@@ -4,6 +4,9 @@
 
 An experimental journaling app with AI-assisted psychological insights.
 
+<img width="1413" alt="image" src="https://github.com/user-attachments/assets/bfc94890-0950-4582-9a1f-516288ceed9c" />
+
+
 ## About Nebline
 
 Nebline is an open-source journaling application that provides AI-assisted psychological insights to users. The application is designed to help you reflect on your thoughts and emotions through journaling, while offering helpful insights that may contribute to your mental well-being.
