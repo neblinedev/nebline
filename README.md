@@ -6,11 +6,9 @@ An experimental journaling app with AI-assisted psychological insights.
 
 <img width="1413" alt="image" src="https://github.com/user-attachments/assets/bfc94890-0950-4582-9a1f-516288ceed9c" />
 
-
 ## About Nebline
 
 Nebline is an open-source journaling application that provides AI-assisted psychological insights to users. The application is designed to help you reflect on your thoughts and emotions through journaling, while offering helpful insights that may contribute to your mental well-being.
-
 
 **Important Disclaimer**: Nebline is not a replacement for professional psychological help. While the app strives to provide valuable insights, it should not be used as a substitute for therapy or professional mental health services.
 
@@ -59,7 +57,7 @@ Each week's journal is stored in a separate folder, organized by year and calend
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/nebline.git
+   git clone git@github.com:neblinedev/nebline.git
    cd nebline
    ```
 
@@ -152,7 +150,7 @@ Nebline uses the AI SDK to interact with different AI providers. The AI registry
 }
 ```
 
-#### Using OpenRouter (Special Case)
+#### Using OpenRouter
 
 OpenRouter allows access to various models from different providers through a single API. When using OpenRouter, specify the model with the format `openrouter:provider/model-name`:
 
@@ -186,64 +184,72 @@ For users who want to back up their journal securely and sync it across devices,
 
 **What are Git and GitHub?**
 
-*   **Git:** A version control system that tracks changes to your files locally on your computer. Think of it like a "save" button with a history, allowing you to revert to previous versions.
-*   **GitHub:** A website that hosts Git repositories online. It allows you to store your local Git repository remotely, providing a backup and enabling collaboration (though for a private journal, you'll likely be the only user).
+- **Git:** A version control system that tracks changes to your files locally on your computer. Think of it like a "save" button with a history, allowing you to revert to previous versions.
+- **GitHub:** A website that hosts Git repositories online. It allows you to store your local Git repository remotely, providing a backup and enabling collaboration (though for a private journal, you'll likely be the only user).
 
 **Steps to Set Up:**
 
 1.  **Install Git:**
-    *   Go to the official [Git website](https://git-scm.com/downloads).
-    *   Download the installer for your operating system (Windows, macOS, or Linux).
-    *   Run the installer and follow the on-screen instructions. Accept the default settings unless you have specific preferences.
+
+    - Go to the official [Git website](https://git-scm.com/downloads).
+    - Download the installer for your operating system (Windows, macOS, or Linux).
+    - Run the installer and follow the on-screen instructions. Accept the default settings unless you have specific preferences.
 
 2.  **Create a GitHub Account:**
-    *   Go to [GitHub's website](https://github.com/).
-    *   Sign up for a free account.
+
+    - Go to [GitHub's website](https://github.com/).
+    - Sign up for a free account.
 
 3.  **Create a New Private Repository on GitHub:**
-    *   Once logged into GitHub, click the "+" icon in the top-right corner and select "New repository".
-    *   Give your repository a name (e.g., `my-private-journal`).
-    *   **Crucially, select "Private"** to ensure only you can see it.
-    *   You can leave other options like adding a README, .gitignore, or license unchecked for now, as Nebline manages the folder structure.
-    *   Click "Create repository".
+
+    - Once logged into GitHub, click the "+" icon in the top-right corner and select "New repository".
+    - Give your repository a name (e.g., `my-private-journal`).
+    - **Crucially, select "Private"** to ensure only you can see it.
+    - You can leave other options like adding a README, .gitignore, or license unchecked for now, as Nebline manages the folder structure.
+    - Click "Create repository".
 
 4.  **Initialize Git in Your Journal Folder:**
-    *   Open a terminal or command prompt on your computer.
-    *   Navigate to the folder where you store your Nebline journal (the one containing `nebline.json`, `overview.md`, etc.). Use the `cd` command (e.g., `cd path/to/your/journal/folder`).
-    *   Run the following command to initialize a Git repository in this folder:
-        ```bash
-        git init
-        ```
-    *   Configure your Git username and email (only needs to be done once per computer):
-        ```bash
-        git config --global user.name "Your Name"
-        git config --global user.email "your.email@example.com"
-        ```
-        (Use the email associated with your GitHub account).
+
+    - Open a terminal or command prompt on your computer.
+    - Navigate to the folder where you store your Nebline journal (the one containing `nebline.json`, `overview.md`, etc.). Use the `cd` command (e.g., `cd path/to/your/journal/folder`).
+    - Run the following command to initialize a Git repository in this folder:
+      ```bash
+      git init
+      ```
+    - Configure your Git username and email (only needs to be done once per computer):
+      ```bash
+      git config --global user.name "Your Name"
+      git config --global user.email "your.email@example.com"
+      ```
+      (Use the email associated with your GitHub account).
 
 5.  **Connect Your Local Folder to the GitHub Repository:**
-    *   On the GitHub page for your newly created repository, find the section "…or push an existing repository from the command line".
-    *   Copy the two lines of commands provided there. They will look something like this (replace `<your-username>` and `<your-repo-name>`):
-        ```bash
-        git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-        git branch -M main
-        ```
-    *   Paste and run these commands in your terminal (while still in your journal folder). The first command links your local folder to the remote GitHub repository (named `origin`). The second ensures your main branch is called `main`.
+
+    - On the GitHub page for your newly created repository, find the section "…or push an existing repository from the command line".
+    - Copy the two lines of commands provided there. They will look something like this (replace `<your-username>` and `<your-repo-name>`):
+      ```bash
+      git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+      git branch -M main
+      ```
+    - Paste and run these commands in your terminal (while still in your journal folder). The first command links your local folder to the remote GitHub repository (named `origin`). The second ensures your main branch is called `main`.
 
 6.  **Add, Commit, and Push Your Journal:**
-    *   Now, you'll add all your current journal files to Git's tracking system, save a snapshot (commit), and upload it (push) to GitHub.
-    *   Run these commands one by one in your terminal:
-        ```bash
-        # Stage all files in the current folder for the commit
-        git add .
 
-        # Create a snapshot (commit) with a descriptive message
-        git commit -m "Initial journal backup"
+    - Now, you'll add all your current journal files to Git's tracking system, save a snapshot (commit), and upload it (push) to GitHub.
+    - Run these commands one by one in your terminal:
 
-        # Upload your commit to the 'main' branch on GitHub ('origin')
-        git push -u origin main
-        ```
-    *   You might be prompted to log in to GitHub through your terminal or a pop-up window.
+      ```bash
+      # Stage all files in the current folder for the commit
+      git add .
+
+      # Create a snapshot (commit) with a descriptive message
+      git commit -m "Initial journal backup"
+
+      # Upload your commit to the 'main' branch on GitHub ('origin')
+      git push -u origin main
+      ```
+
+    - You might be prompted to log in to GitHub through your terminal or a pop-up window.
 
 **Ongoing Backups:**
 
