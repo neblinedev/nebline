@@ -32,7 +32,8 @@ export async function generateWeekInsights({
   overviewContent,
   journalHistory
 }: GenerateJournalInsightsParams): Promise<string> {
-  const prompt = `
+  const seed = Date.now()
+  const prompt = `${seed}
  You are a clinically‑informed assistant. Produce BRIEF, psychologically grounded insights (not therapy).
 
  OUTPUT FORMAT (markdown, keep headings, order & punctuation exactly):
@@ -54,7 +55,7 @@ export async function generateWeekInsights({
  ## Connections
  -
 
- ## Reflection Questions
+ ## Questions for reflection
  1.
  2.
  3.
@@ -65,6 +66,7 @@ export async function generateWeekInsights({
  - If no observations, write "- none -".
  - No clichés, forced optimism, or filler. Be concrete, evidence‑based, nuanced.
  - Use previous analyses for continuity without repeating them verbatim.
+ - You should focus on the latest journal entry (week), but also consider the previous ones.
 
  ---
 ${
@@ -111,7 +113,8 @@ Please analyze the journal entries, especially the latest one, and provide psych
   const { text } = await generateText({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     model: aiRegistry.languageModel(config.model as any),
-    prompt
+    prompt,
+    temperature: 0.7
   })
 
   return text
@@ -132,7 +135,8 @@ export async function generateOverviewInsights({
   config,
   journalHistory
 }: GenerateJournalInsightsParams): Promise<string> {
-  const prompt = `
+  const seed = Date.now()
+  const prompt = `${seed}
  You are a clinically‑informed assistant. Generate concise big‑picture insights.
 
  OUTPUT FORMAT (markdown, headings & order fixed):
@@ -140,6 +144,9 @@ export async function generateOverviewInsights({
  -
 
  ## Significant Events
+ -
+
+ ## Possible positive changes (if any)
  -
 
  ## Recurring Patterns
@@ -155,7 +162,11 @@ export async function generateOverviewInsights({
  -
 
  ## Connections
- -
+ - 
+
+ ## Free form analysis
+(Provide a conversational, nuanced overview of the most important themes and potentiallly relevants insights and solutions.
+Please write like a wide old psycholist would)
 
  ## Reflection Questions
  1.
@@ -164,7 +175,8 @@ export async function generateOverviewInsights({
 
  RULES
  - Write in the same language detected in the overview text.
- - ≤6 bullets each, bullet ≤15 words.
+ - ≤6 bullets each. For each bullet: Give a title, followed by :, then a short description with some analysis and potentially linking to real exanmples.
+   Except for the Free form
  - Use "- none -" if empty.
  - No fluff, toxic positivity, or jargon bombs. Be specific, psychologically informed.
  
@@ -208,7 +220,8 @@ ${overviewContent.insights}`
   const { text } = await generateText({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     model: aiRegistry.languageModel(config.model as any),
-    prompt
+    prompt,
+    temperature: 0.7
   })
 
   return text
