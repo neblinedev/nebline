@@ -83,15 +83,14 @@ export const App: React.FC = () => {
     })
   }, [loadProject]) // Depend on loadProject
 
-  // Reset active tab to journal when the day changes (identified by dayPath)
+  // Reset active tab to document when the week changes (identified by weekPath)
   useEffect(() => {
-    if (currentWeekData) {
-      // Use currentWeekData
+    if (currentWeekData?.weekPath) {
       // Only reset if the week actually changed
       setActiveTab('document')
       console.log('Current week changed, resetting active tab to document.')
     }
-  }, [currentWeekData, currentWeekData?.weekPath]) // Depend on currentWeekData and weekPath
+  }, [currentWeekData?.weekPath]) // Only depend on weekPath, not the entire currentWeekData object
 
   // --- Debounced Save for Journal ---
   const debouncedSaveJournal = useCallback(
